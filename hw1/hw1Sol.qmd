@@ -1,0 +1,170 @@
+---
+title: "Biostat 212a Homework 1"
+subtitle: "Due Jan 23, 2024 @ 11:59PM"
+author: "Chengwu Duan (Jason) and 606332825"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+engine: knitr
+knitr:
+  opts_chunk: 
+    fig.align: 'center'
+    # fig.width: 6
+    # fig.height: 4
+    message: FALSE
+    cache: false
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+## Filling gaps in lecture notes (10pts)
+
+Consider the regression model 
+$$
+Y = f(X) + \epsilon,
+$$ where $\operatorname{E}(\epsilon) = 0$.
+
+### Optimal regression function
+
+Show that the choice 
+$$
+f_{\text{opt}}(X) = \operatorname{E}(Y | X)
+$$ minimizes the mean squared prediction error
+
+$$
+\operatorname{E}[(Y - f(X))^2],
+$$ 
+
+where the expectations averages over variations in both $X$ and $Y$.
+(Hint: condition on $X$.)
+
+**Answer:** 
+$$
+\operatorname{E}[(Y - f(X))^2] = \operatorname{E}[(Y - \operatorname{E}(Y|X)+\operatorname{E}(Y|X)-f(X))^2]\\
+=\operatorname{E}[(Y - \operatorname{E}(Y|X)+\operatorname{E}(Y|X)-f(X))^2]\\
+=\operatorname{E}[((Y - \operatorname{E}(Y|X))+(\operatorname{E}(Y|X)-f(X)))^2]\\
+=\operatorname{E}[(Y - \operatorname{E}(Y|X))^2]+2\operatorname{E}[(Y - \operatorname{E}(Y|X))(\operatorname{E}(Y|X)-f(X))]+\operatorname{E}[(\operatorname{E}(Y|X)-f(X))^2]\\
+=
+$$ 
+### Bias-variance trade-off
+
+Given an estimate $\hat f$ of $f$, show that the test error at a $x_0$
+can be decomposed as $$
+\operatorname{E}[y_0 - \hat f(x_0)]^2 = \underbrace{\operatorname{Var}(\hat f(x_0)) + [\operatorname{Bias}(\hat f(x_0))]^2}_{\text{MSE of } \hat f(x_0) \text{ for estimating } f(x_0)} + \underbrace{\operatorname{Var}(\epsilon)}_{\text{irreducible}},
+$$ where the expectation averages over the variability in $y_0$ and
+$\hat f$.
+
+## ISL Exercise 2.4.3 (10pts)
+
+```{r, eval = F}
+library(tidyverse)
+fit <- lm(sales ~ TV, data = )
+```
+
+## ISL Exercise 2.4.4 (10pts)
+
+You will now think of some real-life applications for statistical
+learning.
+
+\(a\) Describe three real-life applications in which classification
+might be useful. Describe the response, as well as the predictors. Is
+the goal of each application inference or prediction? Explain your
+answer.
+
+**Answer:**
+
+One such useful application could be detecting phishing emails, then the
+user can be protected from phishing scams with email. The response
+variable would be the classification of whether said incoming email is
+either belonging in the category of "Phish" or "Not Phish". The
+predictors could include email address, email content, attachments or
+other metadata of said email. The goal of this application is
+prediction, the model will predict the probability of said email being
+phish given the predictors.
+
+Another useful application could be image recognition in autonomous
+vehicles. In autonomous driving, it involves classification with
+identifying the object in the camera of the vehicle to make the next
+decision. The response variable would be class labels of learned objects
+like other cars, trees, wall, pedestrian etc. The predictors could be
+pixels RGB values captured by the sensors or cameras. The goal for this
+particular purpose is prediction, where the model will predict the
+object in the surroundings captured by the sensors to make the next
+decision for autonomous driving purposes.
+
+Third application could be diagnosis of diseases, this could report a
+specific possible disease given predictors. The response variable would
+be the probability of a medical condition and inferred presence of said
+condition. The predictors could be the symptoms and the medical history
+of the patient etc. The goal of this model would involve both inference
+and prediction, where predictions is involved with determining the
+probability of a disease and an inference would be made about the
+presence of that disease in the patient.
+
+\(b\) Describe three real-life applications in which regression might be
+useful. Describe the response, as well as the predictors. Is the goal of
+each application inference or prediction? Explain your answer.
+
+**Answer:**
+
+One application could be temperature prediction. The response would be
+temperature. The predictors would be variables like wind speed, air
+pressure, humidity and geographical locations etc. The goal of this
+model would be to predict the temperature given the predictors.
+
+Another possible application could be in research like risk factors of
+lung cancer. The response variable would be probability of lung cancer,
+while predictors could be the number of cigarette smoked per week, diet,
+exercise etc. The goal of this model would be inference using regression
+analysis to infer the relationships between different predictors and the
+probability of developing the lung cancer.
+
+Another application could be productivity in the workplace. The response
+variable would be the productivity level of employees. The predictors
+could be job satisfaction, income pay, work hours etc. The goal of the
+model would be inference, to infer the relationship different predictors
+effects on employee productivity.
+
+\(c\) Describe three real-life applications in which cluster analysis
+might be useful.
+
+**Answer:**
+
+One application could be healthcare patient segmentation. Personalized
+healthcare interventions can be developed for each patient segment based on the health indicators, medical history etc. The patient outcome could be greatly improved with the tailored treatment approach. 
+
+## ISL Exercise 2.4.10 (30pts)
+
+Your can read in the `boston` data set directly from url
+<https://raw.githubusercontent.com/ucla-biostat-212a/2024winter/master/slides/data/Boston.csv>.
+A documentation of the `boston` data set is
+[here](https://www.rdocumentation.org/packages/ISLR2/versions/1.3-2/topics/Boston).
+
+#### R
+
+```{r, evalue = T}
+library(tidyverse)
+Boston <- read_csv("https://raw.githubusercontent.com/ucla-biostat-212a/2024winter/master/slides/data/Boston.csv", col_select = -1) %>% 
+  print(width = Inf)
+```
+
+## ISL Exercise 3.7.3 (12pts)
+
+## ISL Exercise 3.7.15 (20pts)
+
+## Bonus question (20pts)
+
+For multiple linear regression, show that $R^2$ is equal to the
+correlation between the response vector
+$\mathbf{y} = (y_1, \ldots, y_n)^T$ and the fitted values
+$\hat{\mathbf{y}} = (\hat y_1, \ldots, \hat y_n)^T$. That is $$
+R^2 = 1 - \frac{\text{RSS}}{\text{TSS}} = [\operatorname{Cor}(\mathbf{y}, \hat{\mathbf{y}})]^2.
+$$
