@@ -45,16 +45,19 @@ where the expectations averages over variations in both $X$ and $Y$.
 (Hint: condition on $X$.)
 
 **Answer:** $$
-\operatorname{E}\{[Y - f(X)]^2\} = \operatorname{E}\{[Y - \operatorname{E}(Y|X)+\operatorname{E}(Y|X)-f(X)]^2\}\\
-=\operatorname{E}\{[Y - \operatorname{E}(Y|X)+\operatorname{E}(Y|X)-f(X)]^2\}\\
-=\operatorname{E}\{[(Y - \operatorname{E}(Y|X))+(\operatorname{E}(Y|X)-f(X))]^2\}\\
-=\operatorname{E}\{[Y-E(Y|X)]^2+[E(Y|X)-f(X)]^2+2[E(Y|X)-f(X)][Y-E(Y|X)]\}\\
-=\operatorname{E}[Y^2+f(x)^2-2Yf(x)]\\
-=\operatorname{E}\{[Y-f(x)]^2\}\\
-=\operatorname{E}\{[f(x)+\epsilon-f(x)]^2\}\\
-=\operatorname{E}(\epsilon^2) (since \operatorname{E}(\epsilon)=0)\\
-=var(\epsilon) \text{ (irreducible, thus minimized)}
-$$ \### Bias-variance trade-off
+\begin{align*}
+\operatorname{E}\{[Y - f(X)]^2\} & = \operatorname{E}\{[Y - \operatorname{E}(Y|X)+\operatorname{E}(Y|X)-f(X)]^2\}\\
+& =\operatorname{E}\{[(Y - \operatorname{E}(Y|X))+(\operatorname{E}(Y|X)-f(X))]^2\}\\
+& =\operatorname{E}\{[Y-E(Y|X)]^2+[E(Y|X)-f(X)]^2+2[E(Y|X)-f(X)][Y-E(Y|X)]\}\\
+& =\operatorname{E}[Y^2+f(x)^2-2Yf(x)]\\
+& =\operatorname{E}\{[Y-f(x)]^2\}\\
+&=\operatorname{E}\{[f(x)+\epsilon-f(x)]^2\}\\
+&=\operatorname{E}(\epsilon^2) (since \operatorname{E}(\epsilon)=0)\\
+&=\operatorname{var}(\epsilon) \text{ (irreducible, thus minimized)}
+\end{align*}
+$$ 
+
+\### Bias-variance trade-off
 
 Given an estimate $\hat f$ of $f$, show that the test error at a $x_0$
 can be decomposed as $$
@@ -62,13 +65,15 @@ can be decomposed as $$
 $$ where the expectation averages over the variability in $y_0$ and $\hat f$.
 
 **Answer:** $$
-\operatorname{E}[y_0 - \hat f(x_0)]^2 = \operatorname{E}[(y_0 - f(x_0) + f(x_0) - \hat f(x_0)]^2\\
-=\operatorname{E}[(y_0 - f(x_0))^2 + (f(x_0) - \hat f(x_0))^2 + 2(y_0 - f(x_0))(f(x_0) - \hat f(x_0))]\\
-=\operatorname{E}[(y_0 - f(x_0))^2] + \operatorname{E}[(f(x_0) - \hat f(x_0))^2] + 2\operatorname{E}[(y_0 - f(x_0))(f(x_0) - \hat f(x_0))]\\
-=\operatorname{E}[(f(x_0)+\epsilon - f(x_0))^2] + \operatorname{E}[(f(x_0) - \hat f(x_0))^2] + 2\operatorname{E}[(f(x_0)+\epsilon - f(x_0))]\operatorname{E}[(f(x_0) - \hat f(x_0))]\\
-=\operatorname{E}[(\epsilon)^2] + \operatorname{E}[(f(x_0) - \hat f(x_0))^2] + \underbrace{2\operatorname{E}[\epsilon]\operatorname{E}[(f(x_0) - \hat f(x_0))]}_{\operatorname{E}(\epsilon)=0}\\
-=\operatorname{Var}(\epsilon) + \operatorname{E}[(f(x_0) - \hat f(x_0))^2] + 0\\
-=\underbrace{\operatorname{Var}(\hat f(x_0)) + [\operatorname{Bias}(\hat f(x_0))]^2}_{\operatorname{E}[(f(x_0) - \hat f(x_0))^2]} + \underbrace{\operatorname{Var}(\epsilon)}_{\text{irreducible}}
+\begin{align*}
+\operatorname{E}[y_0 - \hat f(x_0)]^2 & = \operatorname{E}[(y_0 - f(x_0) + f(x_0) - \hat f(x_0)]^2\\
+& =\operatorname{E}[(y_0 - f(x_0))^2 + (f(x_0) - \hat f(x_0))^2 + 2(y_0 - f(x_0))(f(x_0) - \hat f(x_0))]\\
+& =\operatorname{E}[(y_0 - f(x_0))^2] + \operatorname{E}[(f(x_0) - \hat f(x_0))^2] + 2\operatorname{E}[(y_0 - f(x_0))(f(x_0) - \hat f(x_0))]\\
+& =\operatorname{E}[(f(x_0)+\epsilon - f(x_0))^2] + \operatorname{E}[(f(x_0) - \hat f(x_0))^2] + 2\operatorname{E}[(f(x_0)+\epsilon - f(x_0))]\operatorname{E}[(f(x_0) - \hat f(x_0))]\\
+& =\operatorname{E}[(\epsilon)^2] + \operatorname{E}[(f(x_0) - \hat f(x_0))^2] + \underbrace{2\operatorname{E}[\epsilon]\operatorname{E}[(f(x_0) - \hat f(x_0))]}_{\operatorname{E}(\epsilon)=0}\\
+& =\operatorname{Var}(\epsilon) + \operatorname{E}[(f(x_0) - \hat f(x_0))^2] + 0\\
+& =\underbrace{\operatorname{Var}(\hat f(x_0)) + [\operatorname{Bias}(\hat f(x_0))]^2}_{\operatorname{E}[(f(x_0) - \hat f(x_0))^2]} + \underbrace{\operatorname{Var}(\epsilon)}_{\text{irreducible}}
+\end{align*}
 $$
 
 ## ISL Exercise 2.4.3 (10pts)
@@ -151,6 +156,10 @@ One application could be healthcare patient segmentation. Personalized
 healthcare interventions can be developed for each patient segment based
 on the health indicators, medical history etc. The patient outcome could
 be greatly improved with the tailored treatment approach.
+
+Another application could be anomaly detection. The goal of this model could be to identify unusual patterns in the data that do not conform to expected behavior. This could be useful in identifying outliers in data which is crucial in fraud detection, network security and quality control etc.
+
+Third application could be in genomic research where researchers use cluster analysis to group genes or proteins with similar expression patterns. This could be useful in identifying genes or proteins that are co-regulated or co-expressed. This helps in understanding the biological functions of genes and proteins, genetic relations and drug development etc.
 
 ## ISL Exercise 2.4.10 (30pts)
 
