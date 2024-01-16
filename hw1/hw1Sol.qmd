@@ -27,27 +27,24 @@ editor:
 
 ## Filling gaps in lecture notes (10pts)
 
-Consider the regression model 
-$$
+Consider the regression model $$
 Y = f(X) + \epsilon,
 $$ where $\operatorname{E}(\epsilon) = 0$.
 
 ### Optimal regression function
 
-Show that the choice 
-$$
+Show that the choice $$
 f_{\text{opt}}(X) = \operatorname{E}(Y | X)
 $$ minimizes the mean squared prediction error
 
 $$
 \operatorname{E}[(Y - f(X))^2],
-$$ 
+$$
 
 where the expectations averages over variations in both $X$ and $Y$.
 (Hint: condition on $X$.)
 
-**Answer:** 
-$$
+**Answer:** $$
 \operatorname{E}\{[Y - f(X)]^2\} = \operatorname{E}\{[Y - \operatorname{E}(Y|X)+\operatorname{E}(Y|X)-f(X)]^2\}\\
 =\operatorname{E}\{[Y - \operatorname{E}(Y|X)+\operatorname{E}(Y|X)-f(X)]^2\}\\
 =\operatorname{E}\{[(Y - \operatorname{E}(Y|X))+(\operatorname{E}(Y|X)-f(X))]^2\}\\
@@ -57,14 +54,22 @@ $$
 =\operatorname{E}\{[f(x)+\epsilon-f(x)]^2\}\\
 =\operatorname{E}(\epsilon^2) (since \operatorname{E}(\epsilon)=0)\\
 =var(\epsilon) \text{ (irreducible, thus minimized)}
-$$ 
-### Bias-variance trade-off
+$$ \### Bias-variance trade-off
 
 Given an estimate $\hat f$ of $f$, show that the test error at a $x_0$
 can be decomposed as $$
 \operatorname{E}[y_0 - \hat f(x_0)]^2 = \underbrace{\operatorname{Var}(\hat f(x_0)) + [\operatorname{Bias}(\hat f(x_0))]^2}_{\text{MSE of } \hat f(x_0) \text{ for estimating } f(x_0)} + \underbrace{\operatorname{Var}(\epsilon)}_{\text{irreducible}},
-$$ where the expectation averages over the variability in $y_0$ and
-$\hat f$.
+$$ where the expectation averages over the variability in $y_0$ and $\hat f$.
+
+**Answer:** $$
+\operatorname{E}[y_0 - \hat f(x_0)]^2 = \operatorname{E}[(y_0 - f(x_0) + f(x_0) - \hat f(x_0)]^2\\
+=\operatorname{E}[(y_0 - f(x_0))^2 + (f(x_0) - \hat f(x_0))^2 + 2(y_0 - f(x_0))(f(x_0) - \hat f(x_0))]\\
+=\operatorname{E}[(y_0 - f(x_0))^2] + \operatorname{E}[(f(x_0) - \hat f(x_0))^2] + 2\operatorname{E}[(y_0 - f(x_0))(f(x_0) - \hat f(x_0))]\\
+=\operatorname{E}[(f(x_0)+\epsilon - f(x_0))^2] + \operatorname{E}[(f(x_0) - \hat f(x_0))^2] + 2\operatorname{E}[(f(x_0)+\epsilon - f(x_0))]\operatorname{E}[(f(x_0) - \hat f(x_0))]\\
+=\operatorname{E}[(\epsilon)^2] + \operatorname{E}[(f(x_0) - \hat f(x_0))^2] + \underbrace{2\operatorname{E}[\epsilon]\operatorname{E}[(f(x_0) - \hat f(x_0))]}_{\operatorname{E}(\epsilon)=0}\\
+=\operatorname{Var}(\epsilon) + \operatorname{E}[(f(x_0) - \hat f(x_0))^2] + 0\\
+=\underbrace{\operatorname{Var}(\hat f(x_0)) + [\operatorname{Bias}(\hat f(x_0))]^2}_{\operatorname{E}[(f(x_0) - \hat f(x_0))^2]} + \underbrace{\operatorname{Var}(\epsilon)}_{\text{irreducible}}
+$$
 
 ## ISL Exercise 2.4.3 (10pts)
 
@@ -143,7 +148,9 @@ might be useful.
 **Answer:**
 
 One application could be healthcare patient segmentation. Personalized
-healthcare interventions can be developed for each patient segment based on the health indicators, medical history etc. The patient outcome could be greatly improved with the tailored treatment approach. 
+healthcare interventions can be developed for each patient segment based
+on the health indicators, medical history etc. The patient outcome could
+be greatly improved with the tailored treatment approach.
 
 ## ISL Exercise 2.4.10 (30pts)
 
