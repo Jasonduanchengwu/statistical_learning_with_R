@@ -78,11 +78,6 @@ $$
 
 ## ISL Exercise 2.4.3 (10pts)
 
-```{r, eval = F}
-library(tidyverse)
-fit <- lm(sales ~ TV, data = )
-```
-
 ## ISL Exercise 2.4.4 (10pts)
 
 You will now think of some real-life applications for statistical
