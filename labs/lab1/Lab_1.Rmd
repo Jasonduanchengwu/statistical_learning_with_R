@@ -1,0 +1,167 @@
+---
+title: "212A, Lab 1: Linear Regression"
+author: "Joaquim Teixeira"
+date: "2024-01-16"
+output: html_document
+---
+
+In this lab we will cover linear regression. We will go through question 9 from chapter 3 of ISLR, answering it in a way that provides a template for approaching similar problems in the homework. This lab will also include tips, tricks, and explanations that would not be required in a homework, but would help produce exceptional work and hopefully increase understanding of the material.
+
+Also, a quick note:  this lab, and the course in general, will try as much as possible to focus on the 'tidy' syntax of the R language. While it is not a requirement to follow this syntax, it is highly recommended. However, whatever your syntax, it is required that your code be legible and relatively understandable to the grader. 
+
+First, we load in the libraries required to complete this lab.
+```{r}
+library(tidyverse)
+library(ISLR)
+library(GGally)
+```
+
+### 3.7.9 
+*This question involves the use of multiple linear regression (MLR) on the `Auto`
+data set.*
+
+First, let's go over the data-dictionary for 'Auto':
+
+*Note*: The 'printr' library here is used only to display 'help(Auto)' in Rmarkdown. In console mode, 'help(Auto)' displays in the 'help' panel of Rstudio.
+```{r}
+library(printr)
+help(Auto)
+```
+
+We see that 'origin' is a categorical variable which is coded as a number. Let's recode it into a categorical variable:
+
+```{r}
+Auto = Auto %>% mutate (origin = case_when(
+  origin == 1 ~ 'American',
+  origin == 2 ~ 'European',
+  origin == 3 ~ 'Japanese'
+))
+```
+
+##### a. *Produce a scatterplot matrix which includes all of the variables in the data set.*
+    
+*Note*: before we make the scatter plots, we remove the 'name' variable from the dataframe. 
+
+```{r}
+Auto %>% select(-name) %>% ggpairs ()
+```
+
+*Tip*: Lets see if we can improve the readabilty of this plot with smaller points and bar charts instead of density graphs across the diagonal:
+
+```{r}
+Auto %>% select (-name) %>% ggpairs(lower = list(continuous = wrap("points", alpha = 0.3,    size=0.2)), diag=list(continuous='barDiag'))
+```
+
+##### b.    *Compute the matrix of correlations between the variables using the function `cor()`. You will need to exclude the name variable, `name` which is qualitative.*
+      
+```{r}
+Auto_noname = Auto %>% select(-name) 
+Auto_noname %>% select (-origin) %>% cor()
+```
+
+*Tip*: What if we wanted to plot this?
+
+```{r}
+cor_mat = Auto_noname  %>% select (-origin)  %>% cor() 
+cor_mat = data.frame (VarName = rownames(cor_mat), cor_mat)
+cor_mat %>% pivot_longer (cols = -VarName) %>% ggplot () +
+  geom_tile (aes (x = VarName, y = name, fill = value)) +
+  scale_fill_gradient2(midpoint =0)+
+  theme_bw () +
+  theme (axis.text.x = element_text(hjust = 1, angle =45)) +
+  labs (fill = 'Correlation', x = 'Variable Name', y = 'Variable Name')  
+  
+```
+
+##### c. *Use the lm() function to perform a multiple linear regression with mpg as the response and all other variables except name as the predictors. Use the summary() function to print the results. Comment on the output. For instance:*
+  i. *Is there a relationship between the predictors and the response?*
+  ii. *Which predictors appear to have a statistically significant relationship to the response?*
+  iii. *What does the coefficient for the year variable suggest?*
+  
+
+*Explanation*: What does **significance** mean in the context of linear regression? Recall a  multiple linear regression model:
+
+$$
+y_i = \beta_0 + \beta_1 x_{1i} + ... + \beta_m x_{mi} + \epsilon\\
+\epsilon \sim N(0, \sigma), \ i \in 1, ..., n
+$$
+We then **estimate** $\hat{\beta}_0$, $\hat{\beta}_1$, ... , $\hat{\beta}_m$ using least squares. Since it is an estimate, this means that each $\hat{\beta}_j$, $j \in 0, ..., m$ is a random variable with a mean and variance. In particular, since we assume that $\epsilon \sim N(0, \sigma)$, then $\hat{\beta}_i$ has a t-distribution. In this context, the *significance* of $\hat{\beta_i}$ at level $\alpha$ means that a t-test concluded with $\alpha$ confidence that $E(\hat{\beta}_j)\neq 0$.
+
+Returning to 3.7.9c:
+
+*Note*: In R formula notion, '.' refers to 'everything'. So the formula 'mpg ~ .' refers, intuitively, to the command "model mpg as a function of everything else in the dataset". 
+
+```{r}
+reg_model = lm (mpg ~ . , data = Auto_noname)
+
+summary(reg_model)
+```
+
+We see that weight, year, and origin, are all significantly related to fuel efficiency at a $\alpha=.001$ level, and displacement is significantly related to fuel efficiency at a $\alpha = .01$ level. Holding everything else equal, displacement, year, and european or japenese origin (relative to american origin) are all positively related to miles-per-gallon, while weight is negatively related to miles-per-gallon.
+
+**Example of interpretation**: Holding all else equal, each increase of one year in the model year of the car increases the expected fuel efficiency of the vehicle by 0.75 miles-per-gallon. Holding all else equal, a car of European origin is has an expected fuel efficiency of 2.63 miles-per-gallon higher than a car of American origin. 
+
+##### d. *Use the `plot()` function to produce diagnostic plots of the linear regression fit. Comment on any problems you see with the fit. Do the residual plots suggest any unusually large outliers? Does the leverage plot identify any observations with unusually high leverage?*
+
+*Note*: Here, we use the base 'plot()' function, rather than ggplot, because of its in-built relationship with objects produced by the 'lm' function.
+
+```{r}
+plot (reg_model)
+```
+
+The residual plots reveal two key issues with the MLR fit. Firstly, the residual mean is not centered at zero across all fitted values. This means that there are non-linear effects which we have not captured in our MLR. We will (attempt to) address this in part f. Secondly, the spread of residuals increases as the fitted values increase. This suggests that our assumption of $\epsilon_i \sim N(0,\sigma)$ with constant $\sigma$ for all $i$ in the dataset is not reasonable (this assumption is known as *homoskedasticity*; our dataset exhibits *heteroskedasticity*). 
+
+The residual plot and standardized residual plot also indicate that data points 323, 326, and 3227 have the highest residual error, suggesting that they are relative outliers. Further, the leverage plot indicates that data point 14 has (by far) the highest leverage index of any data point. 
+
+*Explanation*: An **outlier** is a data point that **is extreme in y**. A **high leverage** data point is **extreme in x**.
+
+##### e. *Use the `*` and `:` symbols to fit linear regression models with interaction effects. Do any interactions appear to be statistically significant?*
+
+In general, we want to use domain knowledge and data exploration to choose interaction effects. Here, let's use some crude heuristics to test two interaction terms: 
+1. Accelerating heavier cars increases non-linearly on the amount of energy needed to accelerate lower cars.
+2. Year-on-year MPG improvements varied between cars of different origin. 
+
+As such, we want to test models with weight * acceleration and years * origin. Let's try them each individually and then combined.
+
+*Note*: We can use '*' and ':' interchangeablly in the R syntax for formula.
+```{r}
+summary(lm(mpg ~ . + origin : year, data = Auto_noname))
+summary(lm(mpg ~ . + acceleration * weight , data = Auto_noname))
+summary(lm(mpg ~ . + acceleration * weight + origin : year, data = Auto_noname))
+```
+
+We see that in all three models above, the interaction terms we suggested are statistically significantly related to fuel efficiency. 
+
+We also see that the significance of other predictors changes relative to our original (non-interactions) model. This is an illustrative example of how MLR coefficient significance and interpretation can change with model selection As such, variable selection and model specification is critical in MLR analysis, especially when the objective of the study is statistical inference rather than just predictive power.
+
+
+##### f. *Try a few different transformations of the variables, such as $log(X)$,$\sqrt{X}$, $X^2$. Comment on your findings.*
+
+Returning to our original model, let's remove the variables that are not-significant:
+```{r}
+reg_update = lm (mpg ~ displacement + weight + year + origin, data=Auto_noname)
+summary(reg_update)
+```
+
+Now let's try some transformations on the weight variable and see how that impacts our regression model:
+
+```{r}
+summary( lm (mpg ~ displacement + log( weight) + year + origin, data=Auto_noname))
+summary( lm (mpg ~ displacement + sqrt( weight) + year + origin, data=Auto_noname))
+summary( lm (mpg ~ displacement +  weight^2 + year + origin, data=Auto_noname))
+
+```
+
+We see that a log transformation on weight improves the linear fit of the model, with the $R^2$ from 0.8206 to 0.8353.
+
+By plotting the two variables, we can get some understanding as to why:
+
+```{r}
+ggplot (Auto, aes (weight, mpg))+geom_point()
+ggplot (Auto, aes ( weight^2, mpg))+geom_point()
+ggplot (Auto, aes (sqrt (weight), mpg))+geom_point()
+ggplot (Auto, aes (log (weight), mpg))+geom_point()
+```
+
+Log transformation increases the linearity of the relationship between weight and fuel efficiency. 
+
