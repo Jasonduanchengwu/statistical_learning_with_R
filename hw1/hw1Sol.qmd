@@ -44,16 +44,18 @@ $$
 where the expectations averages over variations in both $X$ and $Y$.
 (Hint: condition on $X$.)
 
-**Answer:** $$
+**Answer:** 
+$$
 \begin{align*}
 \operatorname{E}\{[Y - f(X)]^2\} & = \operatorname{E}\{[Y - \operatorname{E}(Y|X)+\operatorname{E}(Y|X)-f(X)]^2\}\\
 & =\operatorname{E}\{[(Y - \operatorname{E}(Y|X))+(\operatorname{E}(Y|X)-f(X))]^2\}\\
-& =\operatorname{E}\{[Y-E(Y|X)]^2+[E(Y|X)-f(X)]^2+2[E(Y|X)-f(X)][Y-E(Y|X)]\}\\
-& =\operatorname{E}[Y^2+f(x)^2-2Yf(x)]\\
-& =\operatorname{E}\{[Y-f(x)]^2\}\\
-&=\operatorname{E}\{[f(x)+\epsilon-f(x)]^2\}\\
-&=\operatorname{E}(\epsilon^2) (since \operatorname{E}(\epsilon)=0)\\
-&=\operatorname{var}(\epsilon) \text{ (irreducible, thus minimized)}
+& =\operatorname{E}\{[Y-E(Y|X)]^2\}+\operatorname{E}\{[E(Y|X)-f(X)]^2\}+\underbrace{2\operatorname{E}\{[E(Y|X)-f(X)][Y-E(Y|X)]\}}_{(3)}\\
+(3)&=2\operatorname{E}\{[E(Y|X)-f(X)][Y-E(Y|X)]\}\\
+&=2\operatorname{E}\{{\operatorname{E}\{[E(Y|X)-f(X)][Y-E(Y|X)]\}|X}\} \text{(Law of total expectation)}\\
+&=2\operatorname{E}\{[E(Y|X)-f(X)]\underbrace{[E(Y|X)-E(Y|X)]}_{=0}\}\\
+\operatorname{E}\{[Y - f(X)]^2\} 
+& =\operatorname{E}\{[Y-E(Y|X)]^2\}+\operatorname{E}\{\underbrace{[E(Y|X)-f(X)]^2}_{\geq0}\}\\
+\operatorname{E}\{[Y - f(X)]^2\}&\geq\underbrace{\operatorname{E}\{[Y-E(Y|X)]^2\}}_{\text{Irreducible}}
 \end{align*}
 $$ 
 
@@ -170,6 +172,8 @@ library(tidyverse)
 Boston <- read_csv("https://raw.githubusercontent.com/ucla-biostat-212a/2024winter/master/slides/data/Boston.csv", col_select = -1) %>% 
   print(width = Inf)
 ```
+\(a\)
+**Answer: ** There are 506 rows and 14 columns in the data set. The rows represent the different suburbs in the Boston area and the columns represent the different attributes of the suburbs.
 
 ## ISL Exercise 3.7.3 (12pts)
 
