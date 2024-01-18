@@ -172,10 +172,14 @@ library(tidyverse)
 Boston <- read_csv("https://raw.githubusercontent.com/ucla-biostat-212a/2024winter/master/slides/data/Boston.csv", col_select = -1) %>% 
   print(width = Inf)
 ```
-\(a\)
+\(a\)How many rows are in this data set? How many columns? What do the rows and columns represent?
+
 **Answer: ** There are 506 rows and 14 columns in the data set. The rows represent the different suburbs in the Boston area and the columns represent the different attributes of the suburbs.
 
 \(b\)
+Make some pairwise scatterplots of the predictors (columns) in
+this data set. Describe your findings.
+
 ```{r, evalue = T}
 library(tidyverse)
 library(GGally)
@@ -189,10 +193,14 @@ The `chas` variable is a binary variable with 1 indicating that the suburb is bo
 
 The histograms along the diagonal show the distribution of each variable. For instance, `crim` (per capita crime rate by town) and `zn` (proportion of residential land zoned for lots over 25,000 sq.ft.) are right-skewed, indicating that most towns have low crime rates and are not predominantly zoned for large residential lots.
 
-Several variables display potential outliers. For example, crim has some towns with very high crime rates compared to the majority, and tax shows some towns with unusually high tax rates.
+Several variables display potential outliers. For example, `crim` has some towns with very high crime rates compared to the majority, and `tax` shows some towns with unusually high tax rates.
 
-\(c\)
+\(c\)Are any of the predictors associated with per capita crime rate?
+If so, explain the relationship.
 
+**Answer: ** `crim` is positively associated with `rad`, `tax`, `ptratio`, and `lstat`. This suggests that the suburbs with more accessibility to radial highways, higher tax rates, higher pupil-teacher ratio, and higher percentage of lower status of the population tend to have higher crime rates.
+
+`crim` is negatively associated with `zn`, `indus`, `nox`, `rm`, `age`, and `dis`. This suggests that the suburbs with more residential land zoned for lots over 25,000 sq.ft., more non-retail business acres per town, higher nitrogen oxides concentration, more average number of rooms per dwelling, more owner-occupied units built prior to 1940, and longer distances to five Boston employment centres tend to have lower crime rates.
 
 # ```{r, evalue = F}
 # ggsave("bostonpairs.png", Bostonpairs, width = 10, height = 10, units = "in", path= "~")
