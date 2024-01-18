@@ -175,6 +175,29 @@ Boston <- read_csv("https://raw.githubusercontent.com/ucla-biostat-212a/2024wint
 \(a\)
 **Answer: ** There are 506 rows and 14 columns in the data set. The rows represent the different suburbs in the Boston area and the columns represent the different attributes of the suburbs.
 
+\(b\)
+```{r, evalue = T}
+library(tidyverse)
+library(GGally)
+Bostonpairs=ggpairs(data=Boston, lower = list(continuous = wrap("points", alpha = 0.3, size=0.2)), diag=list(continuous='barDiag'))
+```
+**Answer: ** There is a strong positive correlation between the number of rooms (`rm`) and the median value of owner-occupied homes (`medv`), with a correlation coefficient of 0.695.This suggests that as the number of rooms (a larger house) tend to be more valuable which is intuitive. The accessibility to radical highways (`rad`) is also highly positively correlated with the index of accessibility to radial highways (`tax`), with a correlation coefficient of 0.910. This suggests that the suburbs with more accessibility to radial highways tend to have higher tax rates.
+
+There is a strong negative correlation between the percentage of lower status of the population (`lstat`) and the median value of owner-occupied homes (`medv`). This suggests that the suburbs with a higher percentage of lower status of the population tend to have lower median value of owner-occupied homes. There is a strong negative correlation between the pupil-teacher ratio by town (`ptratio`) and the median value of owner-occupied homes (`medv`). This suggests that the suburbs with a higher pupil-teacher ratio tend to have lower median value of owner-occupied homes. 
+
+The `chas` variable is a binary variable with 1 indicating that the suburb is bound by the Charles River and 0 otherwise. The `chas` variable is not highly correlated with any other variables, which is expected since it is a binary variable representing a categorical variable.
+
+The histograms along the diagonal show the distribution of each variable. For instance, `crim` (per capita crime rate by town) and `zn` (proportion of residential land zoned for lots over 25,000 sq.ft.) are right-skewed, indicating that most towns have low crime rates and are not predominantly zoned for large residential lots.
+
+Several variables display potential outliers. For example, crim has some towns with very high crime rates compared to the majority, and tax shows some towns with unusually high tax rates.
+
+\(c\)
+
+
+# ```{r, evalue = F}
+# ggsave("bostonpairs.png", Bostonpairs, width = 10, height = 10, units = "in", path= "~")
+# ```
+
 ## ISL Exercise 3.7.3 (12pts)
 
 ## ISL Exercise 3.7.15 (20pts)
