@@ -184,7 +184,9 @@ this data set. Describe your findings.
 library(tidyverse)
 library(GGally)
 Bostonpairs=ggpairs(data=Boston, lower = list(continuous = wrap("points", alpha = 0.3, size=0.2)), diag=list(continuous='barDiag'))
+Bostonpairs
 ```
+
 **Answer: ** There is a strong positive correlation between the number of rooms (`rm`) and the median value of owner-occupied homes (`medv`), with a correlation coefficient of 0.695.This suggests that as the number of rooms (a larger house) tend to be more valuable which is intuitive. The accessibility to radical highways (`rad`) is also highly positively correlated with the index of accessibility to radial highways (`tax`), with a correlation coefficient of 0.910. This suggests that the suburbs with more accessibility to radial highways tend to have higher tax rates.
 
 There is a strong negative correlation between the percentage of lower status of the population (`lstat`) and the median value of owner-occupied homes (`medv`). This suggests that the suburbs with a higher percentage of lower status of the population tend to have lower median value of owner-occupied homes. There is a strong negative correlation between the pupil-teacher ratio by town (`ptratio`) and the median value of owner-occupied homes (`medv`). This suggests that the suburbs with a higher pupil-teacher ratio tend to have lower median value of owner-occupied homes. 
@@ -202,9 +204,175 @@ If so, explain the relationship.
 
 `crim` is negatively associated with `zn`, `indus`, `nox`, `rm`, `age`, and `dis`. This suggests that the suburbs with more residential land zoned for lots over 25,000 sq.ft., more non-retail business acres per town, higher nitrogen oxides concentration, more average number of rooms per dwelling, more owner-occupied units built prior to 1940, and longer distances to five Boston employment centres tend to have lower crime rates.
 
-# ```{r, evalue = F}
-# ggsave("bostonpairs.png", Bostonpairs, width = 10, height = 10, units = "in", path= "~")
-# ```
+\(d\) Do any of the census tracts of Boston appear to have particularly high crime rates? Tax rates? Pupil-teacher ratios? Comment on the range of each predictor.
+
+**Answer: ** The density distribution of `crim` is positively skewed with the tail in the positive direction, which indicates that the majority of the data points are clustered in the lower end of the scale infering that crime rates are typically low. However we can see few census tracts dotted on the higher end, indicating that there is census tracts with higher crime rate. Thus in general, crime rates are usually low but there are some areas with particularly high crime rates. The super high peaks indicates high variability, but since range represents the presence of extreme values and not the density of those values, `crim` predictor has a large range since there are presence of both extreme values.
+
+The density distribution of `tax` looked normal at large on the lower end of the plot, where there is an increasing occurances as higher taxes to a certain point and taxes occurances dropped further after that point as taxes increases. However there is a high occurance of high taxes on the right end. The two peaks suggests that there are common tax rates that many tracts share with low or high tax rates, and the gap between these peaks indicate fewer tracts with intermediate tax rates. As a whole, I would say that the distribution of `tax` is multimodal, thus there could be distinct subgroups within the `tax` data. Since the start point and end point of the histogram is far apart, I am inclined to say that the range of `tax` is large but with variability.
+
+The distribution of `ptratio` is relatively uniform compared to `crime` or `tax`, but there are still a high density of census tracks with notably high pupil-teacher ratios, which can be inferred from the data points towards the upper end of the histogram. Based on the visual representation of the histogram, the range of `ptratio` is pretty large as the width of the distribution is long and the data is spread out and evenly distributed. Just by looking at the scatter plot, `ptratio` predictor would have a large range since there are presence of both extreme values.
+
+\(e\) How many of the census tracts in this data set bound the Charles
+river?
+
+**Answer: ** Based on the scatter plot, there are far fewer census tracts that bound thhe charles river than those that do not. We can get the exact amount with the following code.
+
+```{r, evalue = T}
+# since chas is a binary variable, we can sum the number of 1s to get the number of census tracts that bound the Charles river
+sum(Boston$chas) 
+
+```
+
+There are 35 census tracts that bound the Charles river.
+
+\(f\) What is the median pupil-teacher ratio among the towns in this
+data set?
+
+**Answer: ** We can get the median pupil-teacher ratio among the towns in this data set with the following code.
+
+```{r, evalue = T}
+median(Boston$ptratio)
+```
+The median pupil-teacher ratio among the towns in this data set is 19.05.
+
+\(g\) Which census tract of Boston has lowest median value of owner-occupied
+homes? What are the values of the other predictors
+for that census tract, and how do those values compare to the
+overall ranges for those predictors? Comment on your findings.
+
+**Answer: ** We can get the census tract of Boston with the lowest median value of owner-occupied homes with the following code. The other values are also displayed .
+
+```{r, evalue = T}
+library(ggplot2)
+library(reshape2)
+library(dplyr)
+
+# Identify the tract with the lowest median home value
+min_medv_row = Boston[which.min(Boston$medv), ]
+print(min_medv_row)
+
+# Tax has a larger range than the other predictors, so we will exclude it from the boxplots to show on a separate plot so that we can see the other predictors more clearly.
+
+# Convert the Boston dataset to a long format excluding `tax`
+long_boston_without_tax = Boston %>% 
+  select(-tax) %>% 
+  pivot_longer(cols = everything(), names_to = "Predictor", values_to = "Value")
+
+# Convert the specific tract values to a long format excluding `tax`
+specific_tract_without_tax = min_medv_row %>% 
+  select(-tax) %>% 
+  pivot_longer(cols = everything(), names_to = "Predictor", values_to = "Value")
+
+# Plot for all predictors except `tax`
+ggplot(long_boston_without_tax, aes(x = Predictor, y = Value)) +
+  geom_boxplot() +
+  geom_point(data = specific_tract_without_tax, aes(x = Predictor, y = Value), color = "red") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Box Plot of Boston Dataset Predictors without Tax")
+
+# Convert the `tax` data to long format
+long_boston_tax = Boston %>% 
+  select(tax) %>% 
+  pivot_longer(cols = everything(), names_to = "Predictor", values_to = "Value")
+
+# Convert the specific tract `tax` value to long format
+specific_tract_tax = min_medv_row %>% 
+  select(tax) %>% 
+  pivot_longer(cols = everything(), names_to = "Predictor", values_to = "Value")
+
+# Plot only for `tax`
+ggplot(long_boston_tax, aes(x = Predictor, y = Value)) +
+  geom_boxplot() +
+  geom_point(data = specific_tract_tax, aes(x = Predictor, y = Value), color = "red") +
+  labs(title = "Box Plot of Boston Dataset Tax Predictor")
+
+```
+The `age` in the specific tract is at the top of the whiskers which indicates that it has older (could be oldest) buildings compared to the other tracts. 
+
+Since `chas` a binary variable, the box plot isn't particularly informative. The specific tract does not border the Charles River. 
+
+The specific tract has high `crim` which would be considered an outlier. 
+
+The `dis` value lies lower than the median and close to the lower quartile suggesting that it is closer to employment center than other tracts. 
+
+The `indus` value is close to the third quartile which suggest that the tract has a high proportion of non-retail business acres per town than many other tracts. 
+
+The value for `lstat` is very high in this tract, way above the third quartile which suggests that there is a higher percentage of lower status of the population in this tract. 
+
+As we know that this tract is the lowest `medv` in Boston. 
+
+The `nox` values seems to be above the median which indicates a higher nitrogen oxides concentration in this tract. 
+
+The pupil-teacher ratio (`ptratio`) is at the upper quartile but within the interquartile range, indicating a higher than average ratio. 
+
+Accessibility to radial highways (`rad`) is at the third quartile for this tract, indicates that it has higher accessibility to radial highways than other tracts. 
+
+The average number of rooms per dwelling (`rm`) is below the median, suggesting smaller dwelling sizes in this tract. 
+
+The proportion of residential land zoned for lots over 25,000 (`zn`) square feet is at the median, which is common in the dataset.
+
+`tax` is at the upper quartile, indicating that this tract has a higher tax rate than other tracts.
+
+\(h\) In this data set, how many of the census tracts average more than
+seven rooms per dwelling? More than eight rooms per dwelling?
+Comment on the census tracts that average more than eight
+rooms per dwelling.
+
+**Answer: **
+
+```{r,eval=T}
+library(ggplot2)
+library(dplyr)
+# Number of census tracts that average more than seven rooms per dwelling
+sum(Boston$rm > 7)
+
+# more than 8
+sum(Boston$rm > 8)
+
+# Comment on the census tracts that average more than eight rooms per dwelling
+boston_morethan_8 = Boston[Boston$rm > 8, ]
+boston_morethan_8
+
+# to comment on the 13 census tracts, I would like to take the median value to represent all of them
+average = apply(boston_morethan_8, 2, median)
+average = as.data.frame(t(average))
+print(average)
+
+# Convert the Boston dataset to a long format excluding `tax`
+long_boston_without_tax = Boston %>%
+  select(-tax) %>%
+  pivot_longer(cols = everything(), names_to = "Predictor", values_to = "Value")
+
+# Convert the specific tract values to a long format excluding `tax`
+average_without_tax = average %>%
+  select(-tax) %>%
+  pivot_longer(cols = everything(), names_to = "Predictor", values_to = "Value")
+
+# Plot for all predictors except `tax`
+ggplot(long_boston_without_tax, aes(x = Predictor, y = Value)) +
+  geom_boxplot() +
+  geom_point(data = average_without_tax, aes(x = Predictor, y = Value), color = "red") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Box Plot of Boston Dataset Predictors without Tax")
+
+# Convert the `tax` data to long format
+long_boston_tax = Boston %>%
+  select(tax) %>%
+  pivot_longer(cols = everything(), names_to = "Predictor", values_to = "Value")
+
+# Convert the specific tract `tax` value to long format
+average_tax = average %>%
+  select(tax) %>%
+  pivot_longer(cols = everything(), names_to = "Predictor", values_to = "Value")
+
+# Plot only for `tax`
+ggplot(long_boston_tax, aes(x = Predictor, y = Value)) +
+  geom_boxplot() +
+  geom_point(data = average_tax, aes(x = Predictor, y = Value), color = "red") +
+  labs(title = "Box Plot of Boston Dataset Tax Predictor")
+```
+Notably there are only 13 census tracts that average more than eight rooms per dwelling.
+
 
 ## ISL Exercise 3.7.3 (12pts)
 
