@@ -330,49 +330,55 @@ sum(Boston$rm > 7)
 sum(Boston$rm > 8)
 
 # Comment on the census tracts that average more than eight rooms per dwelling
-boston_morethan_8 = Boston[Boston$rm > 8, ]
-boston_morethan_8
+tract = Boston[Boston$rm > 8, ]
+tract
 
-# to comment on the 13 census tracts, I would like to take the median value to represent all of them
-average = apply(boston_morethan_8, 2, median)
-average = as.data.frame(t(average))
-print(average)
+#Since a couple of the predictors have a large/small range, we will exclude them from the boxplots to show on a separate plot so that we can see the other predictors more clearly.
 
-# Convert the Boston dataset to a long format excluding `tax`
+# Convert the Boston dataset to a long format excluding `tax`, `chas`, `nox`
 long_boston_without_tax = Boston %>%
-  select(-tax) %>%
+  select(-c(tax, chas, nox)) %>%
   pivot_longer(cols = everything(), names_to = "Predictor", values_to = "Value")
 
-# Convert the specific tract values to a long format excluding `tax`
-average_without_tax = average %>%
-  select(-tax) %>%
+# Convert the specific tract values to a long format excluding `tax`, `chas`, `nox`
+tract_without_tax = tract %>%
+  select(-c(tax, chas, nox)) %>%
   pivot_longer(cols = everything(), names_to = "Predictor", values_to = "Value")
 
-# Plot for all predictors except `tax`
+# Plot for all predictors except `tax`, `chas`, `nox`
 ggplot(long_boston_without_tax, aes(x = Predictor, y = Value)) +
   geom_boxplot() +
-  geom_point(data = average_without_tax, aes(x = Predictor, y = Value), color = "red") +
+  geom_point(data = tract_without_tax, aes(x = Predictor, y = Value), color = "red") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(title = "Box Plot of Boston Dataset Predictors without Tax")
+  labs(title = "Box Plot of Boston Dataset Predictors without Tax, nox, chas")
 
-# Convert the `tax` data to long format
+# Convert the `tax`, `chas`, `nox` data to long format
 long_boston_tax = Boston %>%
-  select(tax) %>%
+  select(c(tax, chas, nox)) %>%
   pivot_longer(cols = everything(), names_to = "Predictor", values_to = "Value")
 
-# Convert the specific tract `tax` value to long format
-average_tax = average %>%
-  select(tax) %>%
+# Convert the specific tract `tax`, `chas`, `nox` values to long format
+tract_tax = tract %>%
+  select(c(tax, chas, nox)) %>%
   pivot_longer(cols = everything(), names_to = "Predictor", values_to = "Value")
 
-# Plot only for `tax`
+# Plot only for `tax`, `chas`, `nox`
 ggplot(long_boston_tax, aes(x = Predictor, y = Value)) +
   geom_boxplot() +
-  geom_point(data = average_tax, aes(x = Predictor, y = Value), color = "red") +
-  labs(title = "Box Plot of Boston Dataset Tax Predictor")
+  geom_point(data = tract_tax, aes(x = Predictor, y = Value), color = "red") +
+  labs(title = "Box Plot of Boston Dataset tax,nox,chas predictors")
 ```
-Notably there are only 13 census tracts that average more than eight rooms per dwelling.
+Notably there are only 13 census tracts that average more than eight rooms per dwelling. The red dots reflects the 13 tracts and their respective values for each predictors.
 
+All of them have `chas` and `nox` valued at 0 which could suggest that tracts with more than 8 rooms per dwelling (larger houses) are not near the charles river, and have low nitrogen oxides concentration. 
+
+`indus` values have the majority below the median, with exception to two of them. `lstat` values are all below the median. `tax` values are all below the median, except for two tracts. These values suggests that larger property tend to lower proportion of non-retail business acres per town, have higher status of the population, and have lower tax rates.
+
+`medv` values are all above the median, with exception to one tract, suggesting that tracts with more than 8 rooms per dwelling tend to have higher median value of owner-occupied homes.
+
+`age`, `dis`, `ptratio` and `zn` predictor values are pretty spread out suggesting that they are not really co-related with having more rooms per dwelling.
+
+`crim` values are not in the outliers region, suggesting that tracts with more rooms per dwelling do not have particularly high crime rates. `rad` values are about the median, suggesting that tracts with more than 8 rooms per dwelling have average accessibility to radial highways.
 
 ## ISL Exercise 3.7.3 (12pts)
 
