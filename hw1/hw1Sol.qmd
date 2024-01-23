@@ -80,10 +80,48 @@ $$
 
 ## ISL Exercise 2.4.3 (10pts)
 
-## ISL Exercise 2.4.4 (10pts)
+\(a\) Provide a sketch of typical (squared) bias, variance, training error,
+test error, and Bayes (or irreducible) error curves, on a single
+plot, as we go from less flexible statistical learning methods
+towards more flexible approaches. The x-axis should represent
+the amount of flexibility in the method, and the y-axis should
+represent the values for each curve. There should be five curves.
+Make sure to label each one.
 
-You will now think of some real-life applications for statistical
-learning.
+```{r, evalue = T}
+flexibility <- seq(-2, 2, length.out = 100)
+squared_bias <- 2*exp(-flexibility) + 2
+variance <- 2*exp(flexibility) + 2
+training_error <- squared_bias*.5
+bayes_error <- 1
+test_error <- squared_bias + variance + bayes_error
+
+ggplot() +
+  geom_line(aes(x = flexibility, y = squared_bias, color = "squared bias")) +
+  geom_line(aes(x = flexibility, y = variance, color = "variance")) +
+  geom_line(aes(x = flexibility, y = training_error, color = "training error")) +
+  geom_line(aes(x = flexibility, y = test_error, color = "test error")) +
+  geom_line(aes(x = flexibility, y = bayes_error, color = "bayes error")) +
+  labs(x = "Flexibility", y = " Mean Squared Error", color = "Error Type") +
+  scale_color_manual(values = c("squared bias" = "red", "variance" = "blue", "training error" = "green", "test error" = "orange", "irreducible error" = "purple", "bayes error" = "black")) +
+  theme(legend.position = "bottom")+
+  labs(title = "Sketch Error Curves")
+
+```
+
+\(b\) Explain why each of the five curves has the shape displayed in part \(a\).
+
+**Answer:** Bayes error (irreducible error) is flat because it is a constant and represents the lowest possible error of any model, which is the noise inherent in the dataset, thus it is not affected by the flexibility of the model and is lowest of any error.
+
+The squared bias generally decreases as model flexibility increases. This is because a more flexible model can adapt better to the true function. However if a model becomes too flexible, it may lead to overfitting and the squared bias will increase.
+
+The variance generally increases as model flexibility increases. This is because a more flexible model is more sensitive to the training data and will change more if the training data changes. A complex model would have high variance as they react to minor fluctuations in the training data.
+
+The training error typically decreases as model flexibility increases because a more flexible model will fit the training data better. However, this may not translate to better test performance due to overfitting.
+
+Initially test error would increase as model flexibility increases because the model fits better. However, past a point, the model will overfit the training data and test error will increase as model flexibility increases.
+
+## ISL Exercise 2.4.4 (10pts)
 
 \(a\) Describe three real-life applications in which classification
 might be useful. Describe the response, as well as the predictors. Is
@@ -180,7 +218,7 @@ Boston <- read_csv("https://raw.githubusercontent.com/ucla-biostat-212a/2024wint
 Make some pairwise scatterplots of the predictors (columns) in
 this data set. Describe your findings.
 
-```{r, evalue = T}
+```{r, evalue = T, message = F}
 library(tidyverse)
 library(GGally)
 Bostonpairs=ggpairs(data=Boston, lower = list(continuous = wrap("points", alpha = 0.3, size=0.2)), diag=list(continuous='barDiag'))
@@ -220,7 +258,6 @@ river?
 ```{r, evalue = T}
 # since chas is a binary variable, we can sum the number of 1s to get the number of census tracts that bound the Charles river
 sum(Boston$chas) 
-
 ```
 
 There are 35 census tracts that bound the Charles river.
@@ -291,7 +328,7 @@ The `age` in the specific tract is at the top of the whiskers which indicates th
 
 Since `chas` a binary variable, the box plot isn't particularly informative. The specific tract does not border the Charles River. 
 
-The specific tract has high `crim` which would be considered an outlier. 
+The specific tract has high `crim` which would be considered an outlier. TODO: find the percentile of this tract.
 
 The `dis` value lies lower than the median and close to the lower quartile suggesting that it is closer to employment center than other tracts. 
 
@@ -400,8 +437,7 @@ R^2 &= 1 - \frac{\text{RSS}}{\text{TSS}}\\
 &=\frac{\text{TSS}-\text{RSS}}{\text{TSS}}\\
 &=\frac{\text{ESS}}{\text{TSS}}*\frac{\text{ESS}}{\text{ESS}}\\
 &=\frac{[\sum_{i=1}^n(\hat{y}_i-\bar{y})^2]^2}{\sum_{i=1}^n(y_i-\bar{y})^2\sum_{i=1}^n(\hat{y}_i-\bar{y})^2}\\
-&=\{\frac{\sum_{i=1}^n(\hat{y}_i-\bar{y})(y_i-\bar{y})}{\sqrt{\sum_{i=1}^n(y_i-\bar{y})^2}\sqrt{\sum_{i=1}^n(\hat{y}_i-\bar{y})^2}}\}^2\\
+&={\frac{\sum_{i=1}^n(\hat{y}_i-\bar{y})(y_i-\bar{y})}{\sqrt{\sum_{i=1}^n(y_i-\bar{y})^2}\sqrt{\sum_{i=1}^n(\hat{y}_i-\bar{y})^2}}}^2\\
 &=[\operatorname{Cor}(\mathbf{y}, \hat{\mathbf{y}})]^2
-
 \end{align*}
 $$
