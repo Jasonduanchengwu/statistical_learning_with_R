@@ -203,8 +203,6 @@ Your can read in the `boston` data set directly from url
 A documentation of the `boston` data set is
 [here](https://www.rdocumentation.org/packages/ISLR2/versions/1.3-2/topics/Boston).
 
-#### R
-
 ```{r, evalue = T}
 library(tidyverse)
 Boston <- read_csv("https://raw.githubusercontent.com/ucla-biostat-212a/2024winter/master/slides/data/Boston.csv", col_select = -1) %>% 
@@ -418,6 +416,54 @@ All of them have `chas` and `nox` valued at 0 which could suggest that tracts wi
 `crim` values are not in the outliers region, suggesting that tracts with more rooms per dwelling do not have particularly high crime rates. `rad` values are about the median, suggesting that tracts with more than 8 rooms per dwelling have average accessibility to radial highways.
 
 ## ISL Exercise 3.7.3 (12pts)
+Suppose we have a data set with five predictors, X1 = GPA, X2 =
+IQ, X3 = Level (1 for College and 0 for High School), X4 = Interaction
+between GPA and IQ, and X5 = Interaction between GPA and
+Level. The response is starting salary after graduation (in thousands
+of dollars). Suppose we use least squares to fit the model, and get
+$\hat{\beta}_0 = 50, \hat{\beta}_1 = 20, \hat{\beta}_2 = 0.07, \hat{\beta}_3 = 35, \hat{\beta}_4 = 0.01, \hat{\beta}_5 = −10$.
+
+
+\(a\) Which answer is correct, and why?
+i. For a fixed value of IQ and GPA, high school graduates earn
+more, on average, than college graduates.
+
+**Answer: ** Incorrect, since the coefficient for `level` ($\hat{\beta}_3 = 35$) is positive, this suggests that college graduates earn more than high school graduates.
+
+ii. For a fixed value of IQ and GPA, college graduates earn
+more, on average, than high school graduates.
+
+**Answer: ** Correct, since the coefficient for `level` ($\hat{\beta}_3 = 35$) is positive, this suggests that college graduates earn more than high school graduates by 35 thousand per increase in level (from high school to college).
+
+iii. For a fixed value of IQ and GPA, high school graduates earn
+more, on average, than college graduates provided that the
+GPA is high enough.
+
+**Answer: ** Incorrect, since the coefficient for `level` ($\hat{\beta}_3 = 35$) is positive at 35, while the interaction between GPA and Level ($\hat{\beta}_5 = -10$) has no effects on high school students (level = 0), it is inferred that if highschool student have the same high GPA as college student, a college student will benefit less in a salary argument. And with the effect of GPA ($\hat{\beta}_1 = 20$), it is still insufficient to offset the positive effect for a higher salary being a college student.
+
+iv. For a fixed value of IQ and GPA, college graduates earn
+more, on average, than high school graduates provided that
+the GPA is high enough.
+
+**Answer: ** Correct, since the coefficient for `level` ($\hat{\beta}_3 = 35$) is positive at 35, suggests that there is a salary advantage for college students by 35 thousand while the interaction between GPA and Level ($\hat{\beta}_5 = -10$) is negative at -10, this will reduce the incremental benefit of a higher GPA in college but there still is a positive effect overall with the effects of a higher GPA (\hat{\beta}_1 = 20) for a higher salary being a college student, this will make the salary difference in favor of college student graduates even more pronounced.
+
+\(b\) Predict the salary of a college graduate with IQ of 110 and a
+GPA of 4.0.
+
+**Answer: ** We can predict the salary of a college graduate with IQ of 110 and a GPA of 4.0 by plugging the values into the equation.
+
+$$ 
+\begin{align*}
+\hat{y} &= \hat{\beta}_0 + \hat{\beta}_1x_1 + \hat{\beta}_2x_2 + \hat{\beta}_3x_3 + \hat{\beta}_4x_4 + \hat{\beta}_5x_5 \\
+\hat{y} &= 50 + 20(4.0) + 0.07(110) + 35(1) + 0.01(4.0)(110) + (-10)(4.0)(1)\\
+\hat{y} &= 137.1 \text{ (In thousands)}
+\end{align*}
+$$
+\(c\) True or false: Since the coefficient for the GPA/IQ interaction
+term is very small, there is very little evidence of an interaction
+effect. Justify your answer.
+
+**Answer: ** False, the coefficient for the GPA/IQ interaction term being small does not mean that there is very little evidence of an interaction effect. The coefficient for the GPA/IQ interaction term being small only means that the effect of the interaction between GPA and IQ is small, but it does not mean that there is no interaction effect. The interaction effect is still present, but it is small. The evidence of interaction effect would require hypothesis testing and conclude based on the p-value and chosen significance level.
 
 ## ISL Exercise 3.7.15 (20pts)
 
