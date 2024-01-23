@@ -392,3 +392,16 @@ $\mathbf{y} = (y_1, \ldots, y_n)^T$ and the fitted values
 $\hat{\mathbf{y}} = (\hat y_1, \ldots, \hat y_n)^T$. That is $$
 R^2 = 1 - \frac{\text{RSS}}{\text{TSS}} = [\operatorname{Cor}(\mathbf{y}, \hat{\mathbf{y}})]^2.
 $$
+**Answer: **
+$$
+\begin{align*}
+R^2 &= 1 - \frac{\text{RSS}}{\text{TSS}}\\
+&=\frac{\text{TSS}}{\text{TSS}} - \frac{\text{RSS}}{\text{TSS}}\\
+&=\frac{\text{TSS}-\text{RSS}}{\text{TSS}}\\
+&=\frac{\text{ESS}}{\text{TSS}}*\frac{\text{ESS}}{\text{ESS}}\\
+&=\frac{[\sum_{i=1}^n(\hat{y}_i-\bar{y})^2]^2}{\sum_{i=1}^n(y_i-\bar{y})^2\sum_{i=1}^n(\hat{y}_i-\bar{y})^2}\\
+&=\{\frac{\sum_{i=1}^n(\hat{y}_i-\bar{y})(y_i-\bar{y})}{\sqrt{\sum_{i=1}^n(y_i-\bar{y})^2}\sqrt{\sum_{i=1}^n(\hat{y}_i-\bar{y})^2}}\}^2\\
+&=[\operatorname{Cor}(\mathbf{y}, \hat{\mathbf{y}})]^2
+
+\end{align*}
+$$
