@@ -59,7 +59,7 @@ $$
 \end{align*}
 $$ 
 
-\### Bias-variance trade-off
+### Bias-variance trade-off
 
 Given an estimate $\hat f$ of $f$, show that the test error at a $x_0$
 can be decomposed as $$
@@ -89,6 +89,7 @@ represent the values for each curve. There should be five curves.
 Make sure to label each one.
 
 ```{r, evalue = T}
+library(ggplot2)
 flexibility <- seq(-2, 2, length.out = 100)
 squared_bias <- 2*exp(-flexibility) + 2
 variance <- 2*exp(flexibility) + 2
@@ -467,6 +468,220 @@ effect. Justify your answer.
 
 ## ISL Exercise 3.7.15 (20pts)
 
+This problem involves the Boston data set, which we saw in the lab
+for this chapter. We will now try to predict per capita crime rate
+using the other variables in this data set. In other words, per capita
+crime rate is the response, and the other variables are the predictors.
+
+\(a\) For each predictor, fit a simple linear regression model to predict
+the response. Describe your results. In which of the models is
+there a statistically significant association between the predictor
+and the response? Create some plots to back up your assertions.
+
+**Answer: **
+```{r, evalue = T}
+znmodel = lm(crim ~ zn, data = Boston)
+summary(znmodel)
+ggplot(znmodel, aes(x = zn, y = crim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Regression Model of Crime Rate vs. Proportion of Residential Land Zoned for Lots over 25,000 sq.ft.")
+```
+
+The p-value for `zn` is less than 0.05, which suggests that there is a statistically significant association between the predictor and the response. And the coefficient suggests that it is a negative relationship between `zn` and `crim`, with -0.07393 coefficient, which suggests that per unit increase of the proportion of residential land zoned for lots over 25,000 sq.ft., per capita crime rate decreases by 0.07.
+
+
+```{r, evalue = T}
+indusmodel = lm(crim ~ indus, data = Boston)
+summary(indusmodel)
+ggplot(indusmodel, aes(x = indus, y = crim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Regression Model of Crime Rate vs. Proportion of Non-Retail Business Acres per Town")
+
+```
+
+```{r, evalue = T}
+chasmodel = lm(crim ~ chas, data = Boston)
+summary(chasmodel)
+ggplot(chasmodel, aes(x = chas, y = crim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Regression Model of Crime Rate vs. Charles River Dummy Variable (1 if tract bounds river; 0 otherwise)")
+```
+
+```{r, evalue = T}
+noxmodel = lm(crim ~ nox, data = Boston)
+summary(noxmodel)
+ggplot(noxmodel, aes(x = nox, y = crim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Regression Model of Crime Rate vs. Nitric Oxides Concentration (parts per 10 million)")
+```
+
+```{r, evalue = T}
+rmmodel = lm(crim ~ rm, data = Boston)
+summary(rmmodel)
+ggplot(rmmodel, aes(x = rm, y = crim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Regression Model of Crime Rate vs. Average Number of Rooms per Dwelling")
+```
+
+```{r, evalue = T}
+agemodel = lm(crim ~ age, data = Boston)
+summary(agemodel)
+ggplot(agemodel, aes(x = age, y = crim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Regression Model of Crime Rate vs. Proportion of Owner-Occupied Units Built Prior to 1940")
+```
+
+```{r, evalue = T}
+dismodel = lm(crim ~ dis, data = Boston)
+summary(dismodel)
+ggplot(dismodel, aes(x = dis, y = crim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Regression Model of Crime Rate vs. Weighted Distances to Five Boston Employment Centres")
+```
+
+```{r, evalue = T}
+radmodel = lm(crim ~ rad, data = Boston)
+summary(radmodel)
+ggplot(radmodel, aes(x = rad, y = crim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Regression Model of Crime Rate vs. Index of Accessibility to Radial Highways")
+```
+
+```{r, evalue = T}
+taxmodel = lm(crim ~ tax, data = Boston)
+summary(taxmodel)
+ggplot(taxmodel, aes(x = tax, y = crim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Regression Model of Crime Rate vs. Full-Value Property-Tax Rate per $10,000")
+```
+
+```{r, evalue = T}
+ptratiomodel = lm(crim ~ ptratio, data = Boston)
+summary(ptratiomodel)
+ggplot(ptratiomodel, aes(x = ptratio, y = crim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Regression Model of Crime Rate vs. Pupil-Teacher Ratio by Town")
+```
+
+```{r, evalue = T}
+lstatmodel = lm(crim ~ lstat, data = Boston)
+summary(lstatmodel)
+ggplot(lstatmodel, aes(x = lstat, y = crim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Regression Model of Crime Rate vs. Percentage of Lower Status of the Population")
+```
+
+```{r, evalue = T}
+medvmodel = lm(crim ~ medv, data = Boston)
+summary(medvmodel)
+ggplot(medvmodel, aes(x = medv, y = crim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Regression Model of Crime Rate vs. Median Value of Owner-Occupied Homes in $1000s")
+```
+
+(b) Fit a multiple regression model to predict the response using
+all of the predictors. Describe your results. For which predictors
+can we reject the null hypothesis H0 : $\beta{}_j = 0$?
+
+**Answer: **
+```{r, evalue = T}
+library(tidyverse)
+
+multimodel=lm(crim ~ ., data = Boston)
+summary(multimodel)
+```
+As the output shows, `zn`, `dis`, `rad` and `medv` have p-values less than 0.05, which suggests that there is a statistically significant association between these predictors and `crim`. We can reject the null hypothesis H0 : $\beta{}_j = 0$ for these predictors.
+
+\(c\) How do your results from (a) compare to your results from (b)?
+Create a plot displaying the univariate regression coefficients
+from (a) on the x-axis, and the multiple regression coefficients
+from (b) on the y-axis. That is, each predictor is displayed as a
+single point in the plot. Its coefficient in a simple linear regression
+model is shown on the x-axis, and its coefficient estimate
+in the multiple linear regression model is shown on the y-axis.
+
+**Answer: ** 
+
+
+```{r, evalue = T}
+simple.reg <- vector("numeric",0)
+simple.reg <- c(simple.reg, znmodel$coefficient[2])
+simple.reg <- c(simple.reg, indusmodel$coefficient[2])
+simple.reg <- c(simple.reg, chasmodel$coefficient[2])
+simple.reg <- c(simple.reg, noxmodel$coefficient[2])
+simple.reg <- c(simple.reg, rmmodel$coefficient[2])
+simple.reg <- c(simple.reg, agemodel$coefficient[2])
+simple.reg <- c(simple.reg, dismodel$coefficient[2])
+simple.reg <- c(simple.reg, radmodel$coefficient[2])
+simple.reg <- c(simple.reg, taxmodel$coefficient[2])
+simple.reg <- c(simple.reg, ptratiomodel$coefficient[2])
+simple.reg <- c(simple.reg, lstatmodel$coefficient[2])
+simple.reg <- c(simple.reg, medvmodel$coefficient[2])
+mult.reg <- vector("numeric", 0)
+mult.reg <- c(multimodel$coefficients)
+mult.reg <- mult.reg[-1]
+plot(simple.reg, mult.reg, col = "red")
+
+```
+\(d\) Is there evidence of non-linear association between any of the
+predictors and the response? To answer this question, for each
+predictor X, fit a model of the form
+
+$$
+Y = \beta_0 + \beta_1X + \beta_2X^2 + \beta_3X^3 + \epsilon.
+$$
+
+**Answer: **
+
+```{r, evalue = T}
+znmultimodel=lm(crim ~ zn + I(zn^2) + I(zn^3), data = Boston)
+summary(znmultimodel)
+
+indusmultimodel=lm(crim ~ indus + I(indus^2) + I(indus^3), data = Boston)
+summary(indusmultimodel)
+
+chasmultimodel=lm(crim ~ chas + I(chas^2) + I(chas^3), data = Boston)
+summary(chasmultimodel)
+
+noxmultimodel=lm(crim ~ nox + I(nox^2) + I(nox^3), data = Boston)
+summary(noxmultimodel)
+
+rmmultimodel=lm(crim ~ rm + I(rm^2) + I(rm^3), data = Boston)
+summary(rmmultimodel)
+
+agemultimodel=lm(crim ~ age + I(age^2) + I(age^3), data = Boston)
+summary(agemultimodel)
+
+dismultimodel=lm(crim ~ dis + I(dis^2) + I(dis^3), data = Boston)
+summary(dismultimodel)
+
+radmultimodel=lm(crim ~ rad + I(rad^2) + I(rad^3), data = Boston)
+summary(radmultimodel)
+
+taxmultimodel=lm(crim ~ tax + I(tax^2) + I(tax^3), data = Boston)
+summary(taxmultimodel)
+
+ptratiomultimodel=lm(crim ~ ptratio + I(ptratio^2) + I(ptratio^3), data = Boston)
+summary(ptratiomultimodel)
+
+lstatmultimodel=lm(crim ~ lstat + I(lstat^2) + I(lstat^3), data = Boston)
+summary(lstatmultimodel)
+
+medvmultimodel=lm(crim ~ medv + I(medv^2) + I(medv^3), data = Boston)
+summary(medvmultimodel)
+```
 ## Bonus question (20pts)
 
 For multiple linear regression, show that $R^2$ is equal to the
