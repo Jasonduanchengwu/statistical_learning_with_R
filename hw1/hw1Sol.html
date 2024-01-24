@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Chengwu Duan (Jason) and 606332825">
-<meta name="dcterms.date" content="2024-01-23">
+<meta name="dcterms.date" content="2024-01-24">
 
 <title>Biostat 212a Homework 1</title>
 <style>
@@ -3254,7 +3254,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 23, 2024</p>
+      <p class="date">January 24, 2024</p>
     </div>
   </div>
   
@@ -3541,7 +3541,7 @@ f_{\text{opt}}(X) = \operatorname{E}(Y | X)
 </div>
 <p>The <code>age</code> in the specific tract is at the top of the whiskers which indicates that it has older (could be oldest) buildings compared to the other tracts.</p>
 <p>Since <code>chas</code> a binary variable, the box plot isn’t particularly informative. The specific tract does not border the Charles River.</p>
-<p>The specific tract has high <code>crim</code> which would be considered an outlier. TODO: find the percentile of this tract.</p>
+<p>The specific tract has high <code>crim</code> which would be considered an outlier.</p>
 <p>The <code>dis</code> value lies lower than the median and close to the lower quartile suggesting that it is closer to employment center than other tracts.</p>
 <p>The <code>indus</code> value is close to the third quartile which suggest that the tract has a high proportion of non-retail business acres per town than many other tracts.</p>
 <p>The value for <code>lstat</code> is very high in this tract, way above the third quartile which suggests that there is a higher percentage of lower status of the population in this tract.</p>
@@ -3712,7 +3712,6 @@ F-statistic:  21.1 on 1 and 504 DF,  p-value: 5.506e-06</code></pre>
 </div>
 </div>
 </div>
-<p>The p-value for <code>zn</code> is less than 0.05, which suggests that there is a statistically significant association between the predictor and the response. And the coefficient suggests that it is a negative relationship between <code>zn</code> and <code>crim</code>, with -0.07393 coefficient, which suggests that per unit increase of the proportion of residential land zoned for lots over 25,000 sq.ft., per capita crime rate decreases by 0.07.</p>
 <div class="cell" data-layout-align="center" data-evalue="true">
 <div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>indusmodel <span class="ot">=</span> <span class="fu">lm</span>(crim <span class="sc">~</span> indus, <span class="at">data =</span> Boston)</span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(indusmodel)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -4098,6 +4097,9 @@ F-statistic: 89.49 on 1 and 504 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 </div>
+<p>Notably all predictors besides <code>chas</code> which is a dummy variable representing if the tract bounds the Charles River or not, have p-values less than 0.05, which suggests that there is a statistically significant association between these predictors and <code>crim</code>. We can reject the null hypothesis H0 : <span class="math inline">\(\beta{}_j = 0\)</span> for these predictors.</p>
+<p><code>indus</code>,<code>nox</code>,<code>age</code>,<code>rad</code>,<code>tax</code>,<code>ptratio</code>,<code>lstat</code> have a positive coefficient which suggests that as these predictor increases, the <code>crim</code> increases. This suggests that the suburbs with more non-retail business acres per town, higher nitrogen oxides concentration, more owner-occupied units built prior to 1940, higher index of accessibility to radial highways, higher tax rates, higher pupil-teacher ratio, or higher percentage of lower status of the population tend to have higher crime rates.</p>
+<p><code>zn</code>,<code>rm</code>,<code>dis</code>,<code>medv</code> have a negative coefficient which suggests that as these predictor increases, the <code>crim</code> decreases. This suggests that the suburbs with more residential land zoned for lots over 25,000 sq.ft., more average number of rooms per dwelling, longer distances to five Boston employment centres, or higher median value of owner-occupied homes tend to have lower crime rates.</p>
 <ol start="2" type="a">
 <li>Fit a multiple regression model to predict the response using all of the predictors. Describe your results. For which predictors can we reject the null hypothesis H0 : <span class="math inline">\(\beta{}_j = 0\)</span>?</li>
 </ol>
@@ -4139,7 +4141,8 @@ Multiple R-squared:  0.4493,    Adjusted R-squared:  0.4359
 F-statistic: 33.52 on 12 and 493 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
-<p>As the output shows, <code>zn</code>, <code>dis</code>, <code>rad</code> and <code>medv</code> have p-values less than 0.05, which suggests that there is a statistically significant association between these predictors and <code>crim</code>. We can reject the null hypothesis H0 : <span class="math inline">\(\beta{}_j = 0\)</span> for these predictors.</p>
+<p>As we can see in multi-linear regression model, a lot of the previously significant predictors are no longer significant.</p>
+<p>As the output shows, only <code>zn</code>, <code>dis</code>, <code>rad</code> and <code>medv</code> have p-values less than 0.05, which suggests that there is a statistically significant association between these predictors and <code>crim</code>. We can reject the null hypothesis H0 : <span class="math inline">\(\beta{}_j = 0\)</span> for these predictors.</p>
 <p>(c) How do your results from (a) compare to your results from (b)? Create a plot displaying the univariate regression coefficients from (a) on the x-axis, and the multiple regression coefficients from (b) on the y-axis. That is, each predictor is displayed as a single point in the plot. Its coefficient in a simple linear regression model is shown on the x-axis, and its coefficient estimate in the multiple linear regression model is shown on the y-axis.</p>
 <p><strong>Answer: </strong></p>
 <div class="cell" data-layout-align="center" data-evalue="true">
@@ -4168,6 +4171,8 @@ F-statistic: 33.52 on 12 and 493 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 </div>
+<p>All predictors seems to be located at top left side of the plot which indicates that for most predictors, the coefficients in the multiple regression model are smaller than in the simple regression model. This is a common occurrence when predictors that are correlated with each other are included in the same model—each predictor’s apparent influence on the response variable is reduced when controlling for other variables.</p>
+<p>one point is located at the bottom right side of the plot which indicates that for this predictor (nox) while in the simple regression model, the coefficient is positive, in the multiple regression model, the coefficient is negative. It means that when we look like its individual effects on <code>crim</code>, it has a positive effect on crime rate, but when we control for other variables, it has a negative effect on crime rate.</p>
 <p>(d) Is there evidence of non-linear association between any of the predictors and the response? To answer this question, for each predictor X, fit a model of the form</p>
 <p><span class="math display">\[
 Y = \beta_0 + \beta_1X + \beta_2X^2 + \beta_3X^3 + \epsilon.
@@ -4459,6 +4464,13 @@ Multiple R-squared:  0.4202,    Adjusted R-squared:  0.4167
 F-statistic: 121.3 on 3 and 502 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
+<p>For <code>zn</code>, the linear term is significant, but the quadratic and cubic terms are not at the 0.05 level, suggesting a potential but not strong non-linear relationship.</p>
+<p>For <code>indus</code>, all terms are significant, indicating a strong non-linear relationship.</p>
+<p><code>chas</code> is a binary variable, so quadratic and cubic terms are not applicable.</p>
+<p>For <code>nox</code>, all polynomial terms are significant, suggesting a non-linear relationship.</p>
+<p><code>rm</code> does not show significant non-linear terms.</p>
+<p><code>age</code> shows significant quadratic and cubic terms, indicating non-linearity.</p>
+<p><code>dis</code>, <code>rad</code>, <code>tax</code>, <code>ptratio</code>, <code>lstat</code>, and <code>medv</code> all show significant non-linear terms.</p>
 </section>
 <section id="bonus-question-20pts" class="level2" data-number="7">
 <h2 data-number="7" class="anchored" data-anchor-id="bonus-question-20pts"><span class="header-section-number">7</span> Bonus question (20pts)</h2>

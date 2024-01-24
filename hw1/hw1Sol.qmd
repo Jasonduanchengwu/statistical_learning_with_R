@@ -327,7 +327,7 @@ The `age` in the specific tract is at the top of the whiskers which indicates th
 
 Since `chas` a binary variable, the box plot isn't particularly informative. The specific tract does not border the Charles River. 
 
-The specific tract has high `crim` which would be considered an outlier. TODO: find the percentile of this tract.
+The specific tract has high `crim` which would be considered an outlier.
 
 The `dis` value lies lower than the median and close to the lower quartile suggesting that it is closer to employment center than other tracts. 
 
@@ -488,9 +488,6 @@ ggplot(znmodel, aes(x = zn, y = crim)) +
   labs(title = "Linear Regression Model of Crime Rate vs. Proportion of Residential Land Zoned for Lots over 25,000 sq.ft.")
 ```
 
-The p-value for `zn` is less than 0.05, which suggests that there is a statistically significant association between the predictor and the response. And the coefficient suggests that it is a negative relationship between `zn` and `crim`, with -0.07393 coefficient, which suggests that per unit increase of the proportion of residential land zoned for lots over 25,000 sq.ft., per capita crime rate decreases by 0.07.
-
-
 ```{r, evalue = T}
 indusmodel = lm(crim ~ indus, data = Boston)
 summary(indusmodel)
@@ -590,6 +587,11 @@ ggplot(medvmodel, aes(x = medv, y = crim)) +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Linear Regression Model of Crime Rate vs. Median Value of Owner-Occupied Homes in $1000s")
 ```
+Notably all predictors besides `chas` which is a dummy variable representing if the tract bounds the Charles River or not, have p-values less than 0.05, which suggests that there is a statistically significant association between these predictors and `crim`. We can reject the null hypothesis H0 : $\beta{}_j = 0$ for these predictors.
+
+`indus`,`nox`,`age`,`rad`,`tax`,`ptratio`,`lstat` have a positive coefficient which suggests that as these predictor increases, the `crim` increases. This suggests that the suburbs with more non-retail business acres per town, higher nitrogen oxides concentration, more owner-occupied units built prior to 1940, higher index of accessibility to radial highways, higher tax rates, higher pupil-teacher ratio, or higher percentage of lower status of the population tend to have higher crime rates.
+
+`zn`,`rm`,`dis`,`medv` have a negative coefficient which suggests that as these predictor increases, the `crim` decreases. This suggests that the suburbs with more residential land zoned for lots over 25,000 sq.ft., more average number of rooms per dwelling, longer distances to five Boston employment centres, or higher median value of owner-occupied homes tend to have lower crime rates.
 
 (b) Fit a multiple regression model to predict the response using
 all of the predictors. Describe your results. For which predictors
@@ -602,7 +604,9 @@ library(tidyverse)
 multimodel=lm(crim ~ ., data = Boston)
 summary(multimodel)
 ```
-As the output shows, `zn`, `dis`, `rad` and `medv` have p-values less than 0.05, which suggests that there is a statistically significant association between these predictors and `crim`. We can reject the null hypothesis H0 : $\beta{}_j = 0$ for these predictors.
+As we can see in multi-linear regression model, a lot of the previously significant predictors are no longer significant.
+
+As the output shows, only `zn`, `dis`, `rad` and `medv` have p-values less than 0.05, which suggests that there is a statistically significant association between these predictors and `crim`. We can reject the null hypothesis H0 : $\beta{}_j = 0$ for these predictors.
 
 \(c\) How do your results from (a) compare to your results from (b)?
 Create a plot displaying the univariate regression coefficients
@@ -613,8 +617,6 @@ model is shown on the x-axis, and its coefficient estimate
 in the multiple linear regression model is shown on the y-axis.
 
 **Answer: ** 
-
-
 ```{r, evalue = T}
 simple.reg <- vector("numeric",0)
 simple.reg <- c(simple.reg, znmodel$coefficient[2])
@@ -635,6 +637,10 @@ mult.reg <- mult.reg[-1]
 plot(simple.reg, mult.reg, col = "red")
 
 ```
+All predictors seems to be located at top left side of the plot which indicates that for most predictors, the coefficients in the multiple regression model are smaller than in the simple regression model. This is a common occurrence when predictors that are correlated with each other are included in the same model—each predictor's apparent influence on the response variable is reduced when controlling for other variables.
+
+one point is located at the bottom right side of the plot which indicates that for this predictor (nox) while in the simple regression model, the coefficient is positive, in the multiple regression model, the coefficient is negative. It means that when we look like its individual effects on `crim`, it has a positive effect on crime rate, but when we control for other variables, it has a negative effect on crime rate.
+
 \(d\) Is there evidence of non-linear association between any of the
 predictors and the response? To answer this question, for each
 predictor X, fit a model of the form
@@ -682,6 +688,21 @@ summary(lstatmultimodel)
 medvmultimodel=lm(crim ~ medv + I(medv^2) + I(medv^3), data = Boston)
 summary(medvmultimodel)
 ```
+
+For `zn`, the linear term is significant, but the quadratic and cubic terms are not at the 0.05 level, suggesting a potential but not strong non-linear relationship.
+
+For `indus`, all terms are significant, indicating a strong non-linear relationship.
+
+`chas` is a binary variable, so quadratic and cubic terms are not applicable.
+
+For `nox`, all polynomial terms are significant, suggesting a non-linear relationship.
+
+`rm` does not show significant non-linear terms.
+
+`age` shows significant quadratic and cubic terms, indicating non-linearity.
+
+`dis`, `rad`, `tax`, `ptratio`, `lstat`, and `medv` all show significant non-linear terms.
+
 ## Bonus question (20pts)
 
 For multiple linear regression, show that $R^2$ is equal to the
