@@ -24,7 +24,29 @@ knitr:
 
 ## ISL Exercise 4.8.1 (10pts)
 
+Using a little bit of algebra, prove that (4.2) is equivalent to (4.3). In
+other words, the logistic function representation and logit representation
+for the logistic regression model are equivalent.
+
+$$ 
+\begin{align*} 
+p(X) &= \frac{e^{\beta_0 + \beta_1X}}{1 + e^{\beta_0 + \beta_1X}} && (4.2)\\ 
+p(X) + p(X) \cdot e^{\beta_0 + \beta_1X} &= e^{\beta_0 + \beta_1X} \\
+p(X) &= (1 - p(X)) \cdot e^{\beta_0 + \beta_1X} \\  \frac{p(X)}{1 - p(X)} &= e^{\beta_0 + \beta_1X} && (4.3)\\
+\end{align*}
+$$
 ## ISL Exercise 4.8.6 (10pts)
+
+Suppose we collect data for a group of students in a statistics class
+with variables X1 = hours studied, X2 = undergrad GPA, and Y =
+receive an A. We fit a logistic regression and produce estimated
+coefficient, ˆ #0 = −6, ˆ #1 = 0.05, ˆ #2 = 1.
+
+\(a\) Estimate the probability that a student who studies for 40 h and
+has an undergrad GPA of 3.5 gets an A in the class.
+
+\(b\) How many hours would the student in part (a) need to study to
+have a 50 % chance of getting an A in the class?
 
 ## ISL Exercise 4.8.9 (10pts)
 
