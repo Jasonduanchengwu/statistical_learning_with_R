@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Chengwu Duan (Jason) and UID: 606332825">
-<meta name="dcterms.date" content="2024-01-24">
+<meta name="dcterms.date" content="2024-02-05">
 
 <title>Biostat 212a Homework 2</title>
 <style>
@@ -20,6 +20,40 @@ ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
 width: 0.8em;
 margin: 0 0.8em 0.2em -1em;  vertical-align: middle;
+}
+
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+}
+pre.numberSource { margin-left: 3em; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -3214,7 +3248,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 24, 2024</p>
+      <p class="date">February 5, 2024</p>
     </div>
   </div>
   
@@ -3235,20 +3269,147 @@ p(X) &amp;= \frac{e^{\beta_0 + \beta_1X}}{1 + e^{\beta_0 + \beta_1X}} &amp;&amp;
 p(X) + p(X) \cdot e^{\beta_0 + \beta_1X} &amp;= e^{\beta_0 + \beta_1X} \\
 p(X) &amp;= (1 - p(X)) \cdot e^{\beta_0 + \beta_1X} \\  \frac{p(X)}{1 - p(X)} &amp;= e^{\beta_0 + \beta_1X} &amp;&amp; (4.3)\\
 \end{align*}
-\]</span> ## ISL Exercise 4.8.6 (10pts) Suppose we collect data for a group of students in a statistics class with variables X1 = hours studied, X2 = undergrad GPA, and Y = receive an A. We fit a logistic regression and produce estimated coefficient, ˆ #0 = −6, ˆ #1 = 0.05, ˆ #2 = 1.</p>
-<p>(a) Estimate the probability that a student who studies for 40 h and has an undergrad GPA of 3.5 gets an A in the class. (b) How many hours would the student in part (a) need to study to have a 50 % chance of getting an A in the class?</p>
+\]</span> ## ISL Exercise 4.8.6 (10pts)</p>
+<p>Suppose we collect data for a group of students in a statistics class with variables X1 = hours studied, X2 = undergrad GPA, and Y = receive an A. We fit a logistic regression and produce estimated coefficient, <span class="math inline">\(\hat{\beta}_0 = −6, \hat{\beta}_1 = 0.05, \hat{\beta}_2 = 1\)</span>.</p>
+<p>(a) Estimate the probability that a student who studies for 40 h and has an undergrad GPA of 3.5 gets an A in the class.</p>
+<p><strong>Answer: </strong> <span class="math display">\[
+\begin{align*}
+p(X) &amp;= \frac{e^{\beta_0 + \beta_1X}}{1 + e^{\beta_0 + \beta_1X}}\\
+&amp;= \frac{e^{-6 + 0.05 \cdot 40 + 1 \cdot 3.5}}{1 + e^{-6 + 0.05 \cdot 40 + 1 \cdot 3.5}}\\
+&amp;= \frac{e^{0.5}}{1 + e^{0.5}}\\
+&amp;= 0.622\\
+\end{align*}
+\]</span></p>
+<p>(b) How many hours would the student in part (a) need to study to have a 50 % chance of getting an A in the class?</p>
+<p><strong>Answer: </strong> <span class="math display">\[
+\begin{align*}
+p(X) &amp;= \frac{e^{\beta_0 + \beta_1X}}{1 + e^{\beta_0 + \beta_1X}}\\
+0.5 &amp;= \frac{e^{-6 + 0.05 \cdot X + 1 \cdot 3.5}}{1 + e^{-6 + 0.05 \cdot X + 1 \cdot 3.5}}\\
+0.5 + 0.5 \cdot e^{-6 + 0.05 \cdot X + 1 \cdot 3.5} &amp;= e^{-6 + 0.05 \cdot X + 1 \cdot 3.5}\\
+0.5 &amp;= e^{-6 + 0.05 \cdot X + 1 \cdot 3.5} - 0.5 \cdot e^{-6 + 0.05 \cdot X + 1 \cdot 3.5}\\
+0.5 &amp;= 0.5 \cdot e^{-6 + 0.05 \cdot X + 1 \cdot 3.5}\\
+1 &amp;= e^{-6 + 0.05 \cdot X + 1 \cdot 3.5}\\
+\ln(1) &amp;= -6 + 0.05 \cdot X + 1 \cdot 3.5\\
+6 - 3.5 &amp;= 0.05 \cdot X\\
+X &amp;= \frac{6 - 3.5}{0.05}\\
+X &amp;= 50\\
+\end{align*}
+\]</span></p>
 </section>
 <section id="isl-exercise-4.8.9-10pts" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="isl-exercise-4.8.9-10pts"><span class="header-section-number">2</span> ISL Exercise 4.8.9 (10pts)</h2>
+<p>This problem has to do with odds.</p>
+<p>(a) On average, what fraction of people with an odds of 0.37 of defaulting on their credit card payment will in fact default?</p>
+<p><strong>Answer: </strong> [<span class="math display">\[\begin{align*} &amp; \frac{p(X)}{1 - p(X)} = 0.37 \\ \implies &amp; p(X) = 0.37 - 0.37 \cdot p(X) \\ \implies &amp; p(X) = \frac{0.37}{1.37} \end{align*}\]</span>]</p>
+<p><span class="math display">\[
+\begin{align*}
+odds &amp;= \frac{p(X)}{1 - p(X)}\\
+\frac{p(X)}{1 - p(X)} &amp;= 0.37 \\
+p(X) &amp;= 0.37 - 0.37 \cdot p(X) \\
+p(X) + 0.37 \cdot p(X)&amp;= 0.37\\
+p(X) &amp;= \frac{0.37}{1.37}\\
+&amp;= 0.27\\
+\end{align*}
+\]</span></p>
+<p>(b) Suppose that an individual has a 16 % chance of defaulting on her credit card payment. What are the odds that she will default?</p>
+<p><strong>Answer: </strong> <span class="math display">\[
+\begin{align*}
+odds &amp;= \frac{p(X)}{1 - p(X)}\\
+&amp;= \frac{0.16}{1 - 0.16}\\
+&amp;= 0.19\\
+\end{align*}
+\]</span></p>
 </section>
 <section id="isl-exercise-4.8.13-a-i-50pts" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="isl-exercise-4.8.13-a-i-50pts"><span class="header-section-number">3</span> ISL Exercise 4.8.13 (a)-(i) (50pts)</h2>
+<p>This question should be answered using the Weekly data set, which is part of the ISLR2 package. This data is similar in nature to the Smarket data from this chapter’s lab, except that it contains 1, 089 weekly returns for 21 years, from the beginning of 1990 to the end of 2010.</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ISLR2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package &#39;ISLR2&#39; was built under R version 4.3.2</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(Weekly)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(Weekly)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Year   Lag1   Lag2   Lag3   Lag4   Lag5    Volume  Today Direction
+1 1990  0.816  1.572 -3.936 -0.229 -3.484 0.1549760 -0.270      Down
+2 1990 -0.270  0.816  1.572 -3.936 -0.229 0.1485740 -2.576      Down
+3 1990 -2.576 -0.270  0.816  1.572 -3.936 0.1598375  3.514        Up
+4 1990  3.514 -2.576 -0.270  0.816  1.572 0.1616300  0.712        Up
+5 1990  0.712  3.514 -2.576 -0.270  0.816 0.1537280  1.178        Up
+6 1990  1.178  0.712  3.514 -2.576 -0.270 0.1544440 -1.372      Down</code></pre>
+</div>
+</div>
+<ol type="a">
+<li>Produce some numerical and graphical summaries of the Weekly data. Do there appear to be any patterns?</li>
+</ol>
+<p><strong>Answer: </strong></p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(Weekly)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      Year           Lag1               Lag2               Lag3         
+ Min.   :1990   Min.   :-18.1950   Min.   :-18.1950   Min.   :-18.1950  
+ 1st Qu.:1995   1st Qu.: -1.1540   1st Qu.: -1.1540   1st Qu.: -1.1580  
+ Median :2000   Median :  0.2410   Median :  0.2410   Median :  0.2410  
+ Mean   :2000   Mean   :  0.1506   Mean   :  0.1511   Mean   :  0.1472  
+ 3rd Qu.:2005   3rd Qu.:  1.4050   3rd Qu.:  1.4090   3rd Qu.:  1.4090  
+ Max.   :2010   Max.   : 12.0260   Max.   : 12.0260   Max.   : 12.0260  
+      Lag4               Lag5              Volume            Today         
+ Min.   :-18.1950   Min.   :-18.1950   Min.   :0.08747   Min.   :-18.1950  
+ 1st Qu.: -1.1580   1st Qu.: -1.1660   1st Qu.:0.33202   1st Qu.: -1.1540  
+ Median :  0.2380   Median :  0.2340   Median :1.00268   Median :  0.2410  
+ Mean   :  0.1458   Mean   :  0.1399   Mean   :1.57462   Mean   :  0.1499  
+ 3rd Qu.:  1.4090   3rd Qu.:  1.4050   3rd Qu.:2.05373   3rd Qu.:  1.4050  
+ Max.   : 12.0260   Max.   : 12.0260   Max.   :9.32821   Max.   : 12.0260  
+ Direction 
+ Down:484  
+ Up  :605  
+           
+           
+           
+           </code></pre>
+</div>
+</div>
+<ol start="2" type="a">
+<li><p>Use the full data set to perform a logistic regression with Direction as the response and the five lag variables plus Volume as predictors. Use the summary function to print the results. Do any of the predictors appear to be statistically significant? If so, which ones?</p></li>
+<li><p>Compute the confusion matrix and overall fraction of correct predictions. Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression.</p></li>
+<li><p>Now fit the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix and the overall fraction of correct predictions for the held out data (that is, the data from 2009 and 2010).</p></li>
+<li><p>Repeat (d) using LDA.</p></li>
+<li><p>Repeat (d) using QDA.</p></li>
+<li><p>Repeat (d) using KNN with K = 1.</p></li>
+<li><p>Repeat (d) using naive Bayes.</p></li>
+<li><p>Which of these methods appears to provide the best results on this data?</p></li>
+</ol>
 </section>
 <section id="bonus-question-isl-exercise-4.8.13-part-j-30pts" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="bonus-question-isl-exercise-4.8.13-part-j-30pts"><span class="header-section-number">4</span> Bonus question: ISL Exercise 4.8.13 Part (j) (30pts)</h2>
+<ol start="10" type="a">
+<li>Experiment with different combinations of predictors, including possible transformations and interactions, for each of the methods. Report the variables, method, and associated confusion matrix that appears to provide the best results on the held out data. Note that you should also experiment with values for K in the KNN classifier.</li>
+</ol>
 </section>
 <section id="bonus-question-isl-exercise-4.8.4-30pts" class="level2" data-number="5">
 <h2 data-number="5" class="anchored" data-anchor-id="bonus-question-isl-exercise-4.8.4-30pts"><span class="header-section-number">5</span> Bonus question: ISL Exercise 4.8.4 (30pts)</h2>
+<p>When the number of features p is large, there tends to be a deterioration in the performance of KNN and other local approaches that perform prediction using only observations that are near the test observation for which a prediction must be made. This phenomenon is known as the curse of dimensionality, and it ties into the fact that non-parametric approaches often perform poorly when p is large. We will now investigate this curse.</p>
+<ol type="a">
+<li>Suppose that we have a set of observations, each with measurements on p = 1 feature, X. We assume that X is uniformly (evenly) distributed on [0, 1]. Associated with each observation is a response value. Suppose that we wish to predict a test observation’s response using only observations that are within 10 % of the range of X closest to that test observation. For instance, in order to predict the response for a test observation with X = 0.6, we will use observations in the range [0.55, 0.65]. On average, what fraction of the available observations will we use to make the prediction?</li>
+</ol>
+<p><strong>Answer: </strong></p>
+<p>Since X is uniformly distributed on [0,1] (X (0, 1)), the location of a test observation within this range will also be uniformly distributed. Location of each test observations is independent. Therefore, the fraction of observations used to make each prediction will also be 10% since the given range is 10%.</p>
+<p>However there could be ‘edge cases’ where (X ), I inferred that if (X ) will be used. On the other extreme if (X (0.95, 1]), training observations in the range ([0.9, 1]) will be used These will cause the range to be lower than 10% because there aren’t any training observations outside of ([0,1]) that can be used, and as a result lowering the fraction of observations used to make the prediction to less than 10%. This will bring down the average fraction of observations used to make the prediction to less than or about 10%.</p>
+<p>So on average, we can claim that the fraction of observations used to make each prediction will be slightly lower or about 10%.</p>
+<ol start="2" type="a">
+<li>Now suppose that we have a set of observations, each with measurements on p = 2 features, X1 and X2. We assume that (X1,X2) are uniformly distributed on [0, 1] × [0, 1]. We wish to predict a test observation’s response using only observations that are within 10 % of the range of X1 and within 10 % of the range of X2 closest to that test observation. For instance, in order to predict the response for a test observation with X1 = 0.6 and X2 = 0.35, we will use observations in the range [0.55, 0.65] for X1 and in the range [0.3, 0.4] for X2. On average, what fraction of the available observations will we use to make the prediction?</li>
+</ol>
+<p><strong>Answer: </strong></p>
+<p>Since we want the fraction of test observations that satisfy both predictors ranges, assuming that the two predictors are independent, the fraction of observations used to make each prediction will be 10% * 10% = 1%.</p>
+<p>However like I mentioned in the previous question, there will be edge cases where the fraction of observations used to make the prediction will be less than 1% because there aren’t any training observations outside of ([0,1]) that can be used, and as a result lowering the fraction of observations used to make the prediction to less than 1%. This will bring down the average fraction of observations used to make the prediction to less than or about 1%.</p>
+<p>On average, we could say that the fraction of observations used to make each prediction will be lower or about 1%.</p>
+<ol start="3" type="a">
+<li><p>Now suppose that we have a set of observations on p = 100 features. Again the observations are uniformly distributed on each feature, and again each feature ranges in value from 0 to 1. We wish to predict a test observation’s response using observations within the 10 % of each feature’s range that is closest to that test observation. What fraction of the available observations will we use to make the prediction?</p></li>
+<li><p>Using your answers to parts (a)–(c), argue that a drawback of KNN when p is large is that there are very few training observations “near” any given test observation.</p></li>
+<li><p>Now suppose that we wish to make a prediction for a test observation by creating a p-dimensional hypercube centered around the test observation that contains, on average, 10 % of the training observations. For p = 1, 2, and 100, what is the length of each side of the hypercube? Comment on your answer. Note: A hypercube is a generalization of a cube to an arbitrary number of dimensions. When p = 1, a hypercube is simply a line segment, when p = 2 it is a square, and when p = 100 it is a 100-dimensional cube.</p></li>
+</ol>
 </section>
 
 </main>
