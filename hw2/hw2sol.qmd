@@ -33,6 +33,7 @@ $$
 p(X) &= \frac{e^{\beta_0 + \beta_1X}}{1 + e^{\beta_0 + \beta_1X}} && (4.2)\\ 
 p(X) + p(X) \cdot e^{\beta_0 + \beta_1X} &= e^{\beta_0 + \beta_1X} \\
 p(X) &= (1 - p(X)) \cdot e^{\beta_0 + \beta_1X} \\  \frac{p(X)}{1 - p(X)} &= e^{\beta_0 + \beta_1X} && (4.3)\\
+\log_{e}(\frac{p(X)}{1 - p(X)}) &= \beta_0 + \beta_1X
 \end{align*}
 $$
 ## ISL Exercise 4.8.6 (10pts)
@@ -45,10 +46,12 @@ has an undergrad GPA of 3.5 gets an A in the class.
 **Answer: **
 $$ 
 \begin{align*} 
-p(X) &= \frac{e^{\beta_0 + \beta_1X}}{1 + e^{\beta_0 + \beta_1X}}\\
+p(X) &= \frac{e^{\beta_0 + \beta_1X_1+\beta_2X_2}}
+{1 + e^{\beta_0 + \beta_1X_1+\beta_2X_2}}\\
 &= \frac{e^{-6 + 0.05 \cdot 40 + 1 \cdot 3.5}}{1 + e^{-6 + 0.05 \cdot 40 + 1 \cdot 3.5}}\\
-&= \frac{e^{0.5}}{1 + e^{0.5}}\\
-&= 0.622\\
+&= \frac{e^{-0.5}}{1 + e^{-0.5}}\\
+&= \frac{0.6065}{1 + 0.6065}\\
+&= 0.3775\\
 \end{align*}
 $$
 
@@ -58,7 +61,7 @@ have a 50 % chance of getting an A in the class?
 **Answer: **
 $$
 \begin{align*}
-p(X) &= \frac{e^{\beta_0 + \beta_1X}}{1 + e^{\beta_0 + \beta_1X}}\\
+p(X) &= \frac{e^{\beta_0 + \beta_1X + \beta_2X_2}}{1 + e^{\beta_0 + \beta_1X + \beta_2X_2}}\\
 0.5 &= \frac{e^{-6 + 0.05 \cdot X + 1 \cdot 3.5}}{1 + e^{-6 + 0.05 \cdot X + 1 \cdot 3.5}}\\
 0.5 + 0.5 \cdot e^{-6 + 0.05 \cdot X + 1 \cdot 3.5} &= e^{-6 + 0.05 \cdot X + 1 \cdot 3.5}\\
 0.5 &= e^{-6 + 0.05 \cdot X + 1 \cdot 3.5} - 0.5 \cdot e^{-6 + 0.05 \cdot X + 1 \cdot 3.5}\\
@@ -118,15 +121,54 @@ data(Weekly)
 
 head(Weekly)
 ```
+The variables are:
+
+Year: The recorded year of obs
+Lag1: % return for previous week
+Lag2: % return for 2 weeks previous
+Lag3: % return for 3 weeks previous
+Lag4: % return for 4 weeks previous
+Lag5: % return for 5 weeks previous
+Volume: average number of daily shares traded in billions
+Today: % return for current week
+Direction: A factor with levels Down and Up indicating whether the market had a  negative or positive return on a given week
 
 (a) Produce some numerical and graphical summaries of the Weekly
 data. Do there appear to be any patterns?
 
 **Answer: **
+
 ```{r, eval=T}
 summary(Weekly)
 ```
 
+```{r, eval=T, message=F}
+library(ggplot2)
+library(GGally)
+ggpairs(Weekly)
+```
+
+```{r, eval=T, message=F}}
+# excludes the Direction column since it is a response variable
+cor(Weekly[ ,-9])
+```
+Based on the corvariates statistics, there are no apparent strong relationships between the `lag` variables. This means that the lag variables are not correlated with each other. And the only strong correlation is between `Year` and `Volume` which is 0.84. This means that the volume of trades has increased over the year, which we can see clearer in a plot of volume over year.
+
+```{r, eval=T, message=F}
+library(ggplot2)
+ggplot(Weekly, aes(x = Year, y = Volume)) + geom_point() + geom_smooth()+
+  labs(title="Volume over Year")
+```
+
+Based on the volume over year, there is a significant increase in volume over the years. The volume trend peeked during 2009 and decreased in 2010. This could be due to the financial crisis that happened in 2008.
+
+```{r, eval=T, message=F}
+ggplot(Weekly, aes(x = Year, fill = Direction)) + 
+  geom_bar(position = "fill") +
+  geom_hline(yintercept = 0.5) +
+  labs(y="Percentage", title="Direction vs Years")
+```
+Based on the Direction vs Time plot, majority of the years have higher than 50% of the weeks with positive returns. While there are some years that have more weeks with negative returns than positive returns, particularly in year 2000, 2001, 2002, and 2008.
 
 (b) Use the full data set to perform a logistic regression with
 Direction as the response and the five lag variables plus Volume
@@ -134,25 +176,109 @@ as predictors. Use the summary function to print the results. Do
 any of the predictors appear to be statistically significant? If so,
 which ones?
 
+**Answer: **
+
+```{r, eval=T, message=F}
+lm.fit = glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, data = Weekly, family = binomial)
+
+summary(lm.fit)
+```
+The only significant predictor is `Lag2` since it has p-values less than 0.05. This suggest that there is significant evidence that `Lag2` is associated with the response variable `Direction`.
+
 (c) Compute the confusion matrix and overall fraction of correct
 predictions. Explain what the confusion matrix is telling you
 about the types of mistakes made by logistic regression.
+
+**Answer: **
+
+```{r, eval=T, message=F}
+library(caret)
+
+predicted <- factor(ifelse(predict(lm.fit, type = "response") < 0.5, "Down", "Up"))
+confusionMatrix(predicted, Weekly$Direction, positive = "Up")
+```
+The confusion matrix is telling us that the logistic regression model made 56.1% correct predictions with true positives and true negatives over all predictions. 
+
+A sensitivity of 0.9207 suggests that this model is good at predicting the market going up when it actually went up. A specificity of 0.1116 suggests that this model is not good at predicting the market going down when it actually went down. 
+
+Pos Pred Value and Neg Pred Value indicate the precision of positive predictions and negative predictions respectively. Both values are relatively low, which means that the model is not very precise in predicting the market going up or down.
 
 (d) Now fit the logistic regression model using a training data period
 from 1990 to 2008, with Lag2 as the only predictor. Compute the
 confusion matrix and the overall fraction of correct predictions
 for the held out data (that is, the data from 2009 and 2010).
 
+**Answer: **
+
+```{r, eval=T, message=F}
+train = Weekly[Weekly$Year <= 2008,]
+test = Weekly[Weekly$Year > 2008,]
+
+lm.fit = glm(Direction ~ Lag2, data = train, family = binomial)
+
+predicted <- factor(ifelse(predict(lm.fit, newdata = test, type = "response") < 0.5, "Down", "Up"))
+
+confusionMatrix(predicted, test$Direction, positive = "Up")
+```
+The accuracy is 0.625 while the baseline classifier is 0.5865 (No Information Rate), we can see that the P-Value [Acc > NIR] = 0.2439, which is more than 0.05 assuming we chose alpha to be 0.05, this means that the model is not significantly better than the baseline classifier.
+
 (e) Repeat (d) using LDA.
+
+**Answer: **
+
+```{r, eval=T, message=F}
+library(MASS)
+lda.fit = lda(Direction ~ Lag2, data = train)
+predicted = predict(lda.fit, newdata = test)
+confusionMatrix(predicted$class, test$Direction, positive = "Up")
+```
+We had similar results as the glm results. The accuracy is 0.625 while the baseline classifier is 0.5865 (No Information Rate), we can see that the P-Value [Acc > NIR] = 0.2439, which is more than 0.05 assuming we chose alpha to be 0.05, this means that the model is not significantly better than the baseline classifier.
 
 (f) Repeat (d) using QDA.
 
+**Answer: **
+
+```{r, eval=T, message=F}
+qda.fit = qda(Direction ~ Lag2, data = train)
+predicted = predict(qda.fit, newdata = test)
+confusionMatrix(predicted$class, test$Direction, positive = "Up")
+
+```
+The accuracy is 0.5865 while the baseline classifier is also 0.5865 (No Information Rate). We can see that there is no difference and as the P-Value [Acc > NIR] = 0.5419, which is more than 0.05 assuming we chose alpha to be 0.05, this means that the model is not significantly better than the baseline classifier. The QDA predicts direction for every test observation, which is why the accuracy is the same as the baseline classifier, with a sensitivity of 1 and a specificity of 0.
+
 (g) Repeat (d) using KNN with K = 1.
+
+**Answer: **
+
+```{r, eval=T, message=F}
+library(class)
+train.X = cbind(train$Lag2)
+test.X = cbind(test$Lag2)
+train.Direction = train$Direction
+set.seed(1)
+knn.pred = knn(train.X, test.X, train.Direction, k = 1)
+confusionMatrix(knn.pred, test$Direction, positive = "Up")
+```
+In this case with KNN with K = 1, the accuracy is 0.5 while the baseline classifier is 0.5865 (No Information Rate). We can see that it is not performing better than the baseline and the P-value gives us the same conclusion.
 
 (h) Repeat (d) using naive Bayes.
 
+**Answer: **
+
+```{r, eval=F, message=F}
+library(e1071)
+naive.fit = naiveBayes(Direction ~ Lag2, data = train)
+predicted = predict(naive.fit, newdata = test)
+confusionMatrix(predicted, test$Direction, positive = "Up")
+```
+The accuracy model is 0.5865 which is same as the baseline in this case. The P-value [Acc > NIR] = 0.5419, which is more than 0.05 assuming we chose alpha to be 0.05, this means that the model is not significantly better than the baseline classifier.
+
 (i) Which of these methods appears to provide the best results on
 this data?
+
+**Answer: **
+
+Logistic regression and LDA appear to provide the best results on this data. Both models have the same accuracy of 0.625, which is the highest among all the models.
 
 
 ## Bonus question: ISL Exercise 4.8.13 Part (j) (30pts)
