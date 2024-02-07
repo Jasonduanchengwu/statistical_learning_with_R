@@ -82,7 +82,6 @@ This problem has to do with odds.
 defaulting on their credit card payment will in fact default?
 
 **Answer: **
-\[\begin{align*} & \frac{p(X)}{1 - p(X)} = 0.37 \\ \implies & p(X) = 0.37 - 0.37 \cdot p(X) \\ \implies & p(X) = \frac{0.37}{1.37} \end{align*}\]
 
 $$
 \begin{align*}
@@ -115,7 +114,7 @@ Smarket data from this chapter’s lab, except that it contains 1, 089
 weekly returns for 21 years, from the beginning of 1990 to the end of
 2010.
 
-```{r, eval=T}
+```{r, eval=T, Warning=F}
 library(ISLR2)
 data(Weekly)
 
@@ -123,15 +122,15 @@ head(Weekly)
 ```
 The variables are:
 
-Year: The recorded year of obs
-Lag1: % return for previous week
-Lag2: % return for 2 weeks previous
-Lag3: % return for 3 weeks previous
-Lag4: % return for 4 weeks previous
-Lag5: % return for 5 weeks previous
-Volume: average number of daily shares traded in billions
-Today: % return for current week
-Direction: A factor with levels Down and Up indicating whether the market had a  negative or positive return on a given week
+- Year: The recorded year of observations
+- Lag1: % return for previous week
+- Lag2: % return for 2 weeks previous
+- Lag3: % return for 3 weeks previous
+- Lag4: % return for 4 weeks previous
+- Lag5: % return for 5 weeks previous
+- Volume: average number of daily shares traded in billions
+- Today: % return for current week
+- Direction: A factor with levels Down and Up indicating whether the market had a  negative or positive return on a given week
 
 (a) Produce some numerical and graphical summaries of the Weekly
 data. Do there appear to be any patterns?
@@ -142,13 +141,13 @@ data. Do there appear to be any patterns?
 summary(Weekly)
 ```
 
-```{r, eval=T, message=F}
+```{r, eval=T, message=F, warning=F}
 library(ggplot2)
 library(GGally)
 ggpairs(Weekly)
 ```
 
-```{r, eval=T, message=F}}
+```{r, eval=T, message=F}
 # excludes the Direction column since it is a response variable
 cor(Weekly[ ,-9])
 ```
@@ -191,7 +190,7 @@ about the types of mistakes made by logistic regression.
 
 **Answer: **
 
-```{r, eval=T, message=F}
+```{r, eval=T, message=F, Warning=F}
 library(caret)
 
 predicted <- factor(ifelse(predict(lm.fit, type = "response") < 0.5, "Down", "Up"))
@@ -289,6 +288,89 @@ methods. Report the variables, method, and associated confusion
 matrix that appears to provide the best results on the held
 out data. Note that you should also experiment with values for
 K in the KNN classifier.
+
+**Answer: **
+
+```{r, eval=T, message=F}
+library(ggplot2)
+# Selecting best K in KNN classifier
+accuracy = c(1:50)
+
+for (i in 1:50) {
+  knn.pred = knn(train.X, test.X, train.Direction, k = i)
+  accuracy[i] = sum(knn.pred == test$Direction) / length(test$Direction)
+}
+
+# shows the best K with highest accuracy in range of 50
+which.max(accuracy)
+accuracy[which.max(accuracy)]
+
+ggplot(data.frame(K = 1:50, Accuracy = accuracy), aes(x = K, y = Accuracy)) + 
+  geom_line() +
+  geom_smooth()+
+  labs(title = "KNN Accuracy vs K selection")
+
+knn.pred = knn(train.X, test.X, train.Direction, k = which.max(accuracy))
+
+confusionMatrix(data = knn.pred, 
+                reference = test$Direction, 
+                positive = "Up")
+```
+The performance has definitely improved with K = 47 compared to K=1. However the P-value [Acc > NIR] = 0.311, which is more than 0.05 assuming we chose alpha to be 0.05, means that the model is not significantly better than the baseline classifier.
+
+```{r, eval=T, message=F, Warning=F}
+# Logistic regression
+train = Weekly[Weekly$Year <= 2008,]
+test = Weekly[Weekly$Year > 2008,]
+
+# Basic model
+lm.fit = glm(Direction ~ ., data = train, family = binomial, control = list(maxit = 50))
+predicted <- factor(ifelse(predict(lm.fit, newdata = test, type = "response") < 0.5, "Down", "Up"))
+confusionMatrix(predicted, test$Direction, positive = "Up")
+
+# Interaction with lag1 and lag2
+interact.fit = glm(Direction ~ .+ Lag1 : Lag2, data = train, family = binomial, control = list(maxit = 50))
+predicted <- factor(ifelse(predict(interact.fit, newdata = test, type = "response") < 0.5, "Down", "Up"))
+confusionMatrix(predicted, test$Direction, positive = "Up")
+
+# transformation of Lag1
+transform.fit = glm(Direction ~ . + I(Lag1^2), data = train, family = binomial, control = list(maxit = 50))
+predicted <- factor(ifelse(predict(transform.fit, newdata = test, type = "response") < 0.5, "Down", "Up"))
+confusionMatrix(predicted, test$Direction, positive = "Up")
+```
+All of these showed a close to 1 accuracy, this could be due to the small sample size or overfitting in the training data. 
+
+```{r, eval=T,message=F}
+# number of test sample
+table(Weekly$Year)
+nrow(test)
+```
+The test sample only contains weeks from 2009 and 2010 which adds up to 104 in total, let us redistribute the train-test separation and try again.
+
+```{r, eval=T, message=F, Warning=F}
+# Logistic regression
+train = Weekly[Weekly$Year <= 2000,]
+test = Weekly[Weekly$Year > 2000,]
+
+# Basic model
+print("CM for basic model with everything")
+lm.fit = glm(Direction ~ ., data = train, family = binomial, control = list(maxit = 50))
+predicted <- factor(ifelse(predict(lm.fit, newdata = test, type = "response") < 0.5, "Down", "Up"))
+confusionMatrix(predicted, test$Direction, positive = "Up")
+
+# Interaction with lag1 and lag2
+print("CM for interaction with lag1 and lag2")
+interact.fit = glm(Direction ~ .+ Lag1 : Lag2, data = train, family = binomial, control = list(maxit = 50))
+predicted <- factor(ifelse(predict(interact.fit, newdata = test, type = "response") < 0.5, "Down", "Up"))
+confusionMatrix(predicted, test$Direction, positive = "Up")
+
+# transformation of Lag1
+print("CM with transformation of Lag1 (lag1^2)")
+transform.fit = glm(Direction ~ . + I(Lag1^2), data = train, family = binomial, control = list(maxit = 50))
+predicted <- factor(ifelse(predict(transform.fit, newdata = test, type = "response") < 0.5, "Down", "Up"))
+confusionMatrix(predicted, test$Direction, positive = "Up")
+```
+The result accuracies are still close to 1, which could be due to the small sample size or overfitting in the training data. This is hard to avoid with a small sample size. However out of these models the model with the interaction of lag1 and lag2 seems to be the best with the highest accuracy of 0.975. With P-Value [Acc > NIR] < 2.2e-16, we can conclude that the model is significantly better than the baseline classifier.
 
 ## Bonus question: ISL Exercise 4.8.4 (30pts)
 
