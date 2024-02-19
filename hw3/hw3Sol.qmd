@@ -118,6 +118,115 @@ The probability that a bootstrap sample of size n = 100 contains the 4th observa
 
 ## ISL Exercise 5.4.9 (20pts)
 
+We will now consider the Boston housing data set, from the ISLR2 library.
+```{r, eval=T}
+library(ISLR2)
+data("Boston")
+Boston %>% 
+  print(width=10, n=inf)
+```
+
+(a) Based on this data set, provide an estimate for the population
+mean of medv. Call this estimate ˆμ.
+
+**Answer: **
+
+```{r, eval=T}
+(mu.hat = mean(Boston$medv))
+```
+
+(b) Provide an estimate of the standard error of ˆμ. Interpret this
+result.
+Hint: We can compute the standard error of the sample mean by
+dividing the sample standard deviation by the square root of the
+number of observations.
+
+**Answer: **
+
+```{r, eval=T}
+(se.muhat = sd(Boston$medv) / sqrt(length(Boston$medv)))
+```
+
+(c) Now estimate the standard error of ˆμ using the bootstrap. How
+does this compare to your answer from (b)?
+
+**Answer: **
+
+```{r, eval=T}
+library(boot)
+library(dplyr)
+
+set.seed(1)
+boot.fn <- function(data, index) return(mean(data[index]))
+
+(res = boot(Boston$medv, boot.fn, 1000))
+```
+The standard error of ˆμ using the bootstrap is 0.411, which is very close to the value we obtained from (b) 0.408.
+
+(d) Based on your bootstrap estimate from (c), provide a 95 % confidence
+interval for the mean of medv. Compare it to the results
+obtained using t.test(Boston$medv).
+Hint: You can approximate a 95 % confidence interval using the
+formula [ˆμ − 2SE(ˆμ), ˆμ + 2SE(ˆμ)].
+
+**Answer: **
+
+```{r, eval=T}
+se.boot = sd(res$t)
+round(c(mu.hat - 2*se.boot, mu.hat + 2*se.boot),4)
+```
+
+```{r, eval=T}
+(t.test(Boston$medv)$conf.int)
+```
+The 95% confidence intervals produced with these two methods are very close, equal up to 1 decimal place.
+
+(e) Based on this data set, provide an estimate, ˆμmed, for the median
+value of medv in the population.
+
+**Answer: **
+
+```{r, eval=T}
+(med.hat = median(Boston$medv))
+```
+
+(f) We now would like to estimate the standard error of ˆμmed. Unfortunately,
+there is no simple formula for computing the standard
+error of the median. Instead, estimate the standard error of the
+median using the bootstrap. Comment on your findings.
+
+**Answer: **
+
+```{r, eval=T}
+set.seed(1)
+boot.fn <- function(data, index) return(median(data[index]))
+
+(res = boot(Boston$medv, boot.fn, 1000))
+```
+The standard error of ˆμmed using the bootstrap is 0.3778. The standard error of the median is smaller than the standard error of the mean, which is consistent with the fact that the median is a more robust estimator.
+
+(g) Based on this data set, provide an estimate for the tenth percentile
+of medv in Boston census tracts. Call this quantity ˆμ0.1.
+(You can use the quantile() function.)
+
+**Answer: **
+
+```{r, eval=T}
+(mu0.1.hat = quantile(Boston$medv, 0.1))
+```
+
+(h) Use the bootstrap to estimate the standard error of ˆμ0.1. Comment
+on your findings.
+
+**Answer: **
+
+```{r, eval=T}
+set.seed(1)
+boot.fn <- function(data, index) return(quantile(data[index], 0.1))
+(res = boot(Boston$medv, boot.fn, 1000))
+```
+The standard error of ˆμ0.1 using the bootstrap is 0.4768, which is larger than the standard error of the median. However it is still small.
+
 ## Least squares is MLE (10pts)
 
 Show that in the case of linear model with Gaussian errors, maximum likelihood and least squares are the same thing, and $C_p$ and AIC are equivalent.
