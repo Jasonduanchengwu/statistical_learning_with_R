@@ -231,6 +231,40 @@ The standard error of ˆμ0.1 using the bootstrap is 0.4768, which is larger tha
 
 Show that in the case of linear model with Gaussian errors, maximum likelihood and least squares are the same thing, and $C_p$ and AIC are equivalent.
 
+**Answer: **
+The linear model with Gaussian errors is given by
+$$
+y = X\beta + \epsilon
+$$
+
+where $\epsilon \sim N(0, \sigma^2)$. The likelihood function is
+$$
+L(\beta, \sigma^2) = \prod_{i=1}^N \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(y_i - \beta^T x_i)^2}{2\sigma^2}\right)
+$$
+The log-likelihood function is
+$$
+\ell(\beta, \sigma^2) = -\frac{N}{2} \log(2\pi\sigma^2) - \frac{1}{2\sigma^2} \sum_{i=1}^N (y_i - \beta^T x_i)^2
+$$
+The least squares estimate of $\beta$ is the value that minimizes the sum of squared residuals
+$$
+\sum_{i=1}^N (y_i - \beta^T x_i)^2
+$$
+which is the same as maximizing the likelihood function.
+
+The maximum likelihood estimate of $\beta$ is the value that maximizes $\ell(\beta, \sigma^2)$, which is the same as minimizing the sum of squared residuals. Thus, maximum likelihood and least squares are the same thing.
+
+The AIC is defined as
+$$
+AIC = -2\ell(\hat{\beta}, \hat{\sigma}^2) + 2p
+$$
+where $p$ is the number of parameters in the model. The $C_p$ statistic is defined as
+$$
+C_p = \frac{1}{N} \left(\sum_{i=1}^N (y_i - \hat{\beta}^T x_i)^2 + 2p\hat{\sigma}^2\right)
+$$
+where $\hat{\beta}$ and $\hat{\sigma}^2$ are the least squares estimates. Since the least squares estimates are the maximum likelihood estimates, the AIC and $C_p$ are equivalent.
+
+##TBF
+
 ## ISL Exercise 6.6.1 (10pts)
 
 ## ISL Exercise 6.6.3 (10pts)
