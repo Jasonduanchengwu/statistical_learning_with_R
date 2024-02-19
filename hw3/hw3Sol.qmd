@@ -1,0 +1,149 @@
+---
+title: "Biostat 212A Homework 3"
+subtitle: "Due Feb 20, 2024 @ 11:59PM"
+author: "YOUR NAME and UID"
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+engine: knitr
+knitr:
+  opts_chunk: 
+    fig.align: 'center'
+    # fig.width: 6
+    # fig.height: 4
+    message: FALSE
+    cache: false
+---
+
+## ISL Exercise 5.4.2 (10pts)
+
+We will now derive the probability that a given observation is part of a bootstrap sample. Suppose that we obtain a bootstrap sample from a set of n observations.
+
+(a) What is the probability that the first bootstrap observation is not the jth observation from the original sample? Justify your answer.
+
+**Answer: ** 
+
+Assume that there are n total observations, there is an equal probability of selecting any of the n observations. The probability of selecting the $j^{th}$ observation is 1/n. Thus the probability of not selecting the $j^{th}$ observation is 1 - 1/n.
+
+(b) What is the probability that the second bootstrap observation
+is not the jth observation from the original sample?
+
+**Answer: **
+
+Same as in part (a), the probability of not selecting the $j^{th}$ observation is 1 - 1/n.
+
+(c) Argue that the probability that the jth observation is not in the
+bootstrap sample is (1 − 1/n)n.
+
+**Answer: **
+
+since we sample n times in total and each sampling is independent, the probability of not selecting the $j^{th}$ observation is $(1 - 1/n)^n$.
+
+(d) When n = 5, what is the probability that the jth observation is
+in the bootstrap sample?
+
+**Answer: **
+
+When n = 5, the probability that the jth observation is in the bootstrap sample is $1 - (1 - 1/5)^5 = 0.672$ according to previous established equation.
+
+(e) When n = 100, what is the probability that the jth observation
+is in the bootstrap sample?
+
+**Answer: **
+
+When n = 100, the probability that the jth observation is in the bootstrap sample is $1 - (1 - 1/100)^100 = 0.634$ according to previous established equation.
+
+(f) When n = 10, 000, what is the probability that the jth observation
+is in the bootstrap sample?
+
+**Answer: **
+
+When n = 10, 000, the probability that the jth observation is in the bootstrap sample is $1 - (1 - 1/10000)^10000 = 0.632$ according to previous established equation.
+
+(g) Create a plot that displays, for each integer value of n from 1
+to 100, 000, the probability that the jth observation is in the
+bootstrap sample. Comment on what you observe.
+
+```{r, eval=T}
+library(tidyverse)
+
+n = 1:100000
+data.frame(n, prob = 1 - (1 - 1/n)^n) %>%
+  ggplot(aes(x = n, y = prob)) +
+  geom_line(size = 1) +
+  labs(x = "n", y = "Probability", title = "Probability that the jth observation is in the bootstrap sample") +
+  theme_bw()
+```
+Since the graph seems to converge to a value around 0.6 and it cuts really close to x=0 in the plot above, lets zoom in and restrict the range of n to 100 to get a better look.
+
+```{r, eval=T}
+library(tidyverse)
+
+n = 1:100
+data.frame(n, prob = 1 - (1 - 1/n)^n) %>%
+  ggplot(aes(x = n, y = prob)) +
+  geom_line(size = 1) +
+  geom_hline(yintercept = 1 - (1 - 1/100000)^100000, 
+             linetype = "dashed", color = "red") +
+  annotate("text", x = 3, y = 0.642, label = "y = 0.632", color = "red") +
+  labs(x = "n", y = "Probability", title = "Probability that the jth observation is in the bootstrap sample") +
+  theme_bw()
+```
+As we can see from the plot, the probability that the jth observation is in the bootstrap sample converges to 0.632 as n increases.
+
+(h) We will now investigate numerically the probability that a bootstrap
+sample of size n = 100 contains the jth observation. Here
+j = 4. We repeatedly create bootstrap samples, and each time
+we record whether or not the fourth observation is contained in
+the bootstrap sample.
+
+```{r, eval=T}
+store <- rep(NA, 10000)
+for(i in 1:10000){
+  store[i] <- sum(sample(1:100, rep=TRUE) == 4) > 0
+}
+mean(store)
+```
+Comment on the results obtained.
+
+**Answer: **
+The probability that a bootstrap sample of size n = 100 contains the 4th observation is 0.637 as we observed, which is very close to the value we would obtain if we are using math $1 - (1 - 1/100)^100 = 0.634$.
+
+## ISL Exercise 5.4.9 (20pts)
+
+## Least squares is MLE (10pts)
+
+Show that in the case of linear model with Gaussian errors, maximum likelihood and least squares are the same thing, and $C_p$ and AIC are equivalent.
+
+## ISL Exercise 6.6.1 (10pts)
+
+## ISL Exercise 6.6.3 (10pts)
+
+## ISL Exercise 6.6.4 (10pts)
+
+## ISL Exercise 6.6.5 (10pts)
+
+## ISL Exercise 6.6.11 (30pts)
+
+You must follow the [typical machine learning paradigm](https://ucla-biostat-212a.github.io/2024winter/slides/06-modelselection/workflow_lasso.html) to compare _at least_ 3 methods: least squares, lasso, and ridge. Report final results as
+
+| Method | CV RMSE | Test RMSE |
+|:------:|:------:|:------:|:------:|
+| LS | | | |
+| Ridge | | | |
+| Lasso | | | |
+| ... | | | |
+
+## Bonus question (20pts)
+
+Consider a linear regression, fit by least squares to a set of training data $(x_1, y_1), \ldots, (x_N,  y_N)$ drawn at random from a population. Let $\hat \beta$ be the least squares estimate. Suppose we have some test data $(\tilde{x}_1, \tilde{y}_1), \ldots, (\tilde{x}_M, \tilde{y}_M)$ drawn at random from the same population as the training data. If $R_{\text{train}}(\beta) = \frac{1}{N} \sum_{i=1}^N (y_i - \beta^T x_i)^2$ and $R_{\text{test}}(\beta) = \frac{1}{M} \sum_{i=1}^M (\tilde{y}_i - \beta^T \tilde{x}_i)^2$. Show that
+$$
+\operatorname{E}[R_{\text{train}}(\hat{\beta})] < \operatorname{E}[R_{\text{test}}(\hat{\beta})].
+$$
