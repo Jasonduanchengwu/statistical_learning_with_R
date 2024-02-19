@@ -290,3 +290,32 @@ Consider a linear regression, fit by least squares to a set of training data $(x
 $$
 \operatorname{E}[R_{\text{train}}(\hat{\beta})] < \operatorname{E}[R_{\text{test}}(\hat{\beta})].
 $$
+
+**Answer: **
+The expected value of the training error is
+$$
+\begin{aligned}
+\operatorname{E}[R_{\text{train}}(\hat{\beta})] &= \operatorname{E}\left[\frac{1}{N} \sum_{i=1}^N (y_i - \hat{\beta}^T x_i)^2\right] \\
+&= \frac{1}{N} \sum_{i=1}^N \operatorname{E}[(y_i - \hat{\beta}^T x_i)^2] \\
+&= \frac{1}{N} \sum_{i=1}^N \left(\operatorname{Var}(y_i - \hat{\beta}^T x_i) + \operatorname{E}[y_i - \hat{\beta}^T x_i]^2\right) \\
+&= \frac{1}{N} \sum_{i=1}^N \left(\operatorname{Var}(y_i - \hat{\beta}^T x_i) + \left(\operatorname{E}[y_i] - \hat{\beta}^T \operatorname{E}[x_i]\right)^2\right) \\
+&= \frac{1}{N} \sum_{i=1}^N \left(\operatorname{Var}(y_i - \hat{\beta}^T x_i) + \left(\hat{\beta}^T x_i - \hat{\beta}^T x_i\right)^2\right) \\
+&= \frac{1}{N} \sum_{i=1}^N \left(\operatorname{Var}(y_i - \hat{\beta}^T x_i) + 0\right) \\
+&= \frac{1}{N} \sum_{i=1}^N \operatorname{Var}(y_i - \hat{\beta}^T x_i) \\
+&= \operatorname{Var}(y - X\hat{\beta})
+\end{aligned}
+$$
+The expected value of the test error is
+$$
+\begin{aligned}
+\operatorname{E}[R_{\text{test}}(\hat{\beta})] &= \operatorname{E}\left[\frac{1}{M} \sum_{i=1}^M (\tilde{y}_i - \hat{\beta}^T \tilde{x}_i)^2\right] \\
+&= \frac{1}{M} \sum_{i=1}^M \operatorname{E}[(\tilde{y}_i - \hat{\beta}^T \tilde{x}_i)^2] \\
+&= \frac{1}{M} \sum_{i=1}^M \left(\operatorname{Var}(\tilde{y}_i - \hat{\beta}^T \tilde{x}_i) + \operatorname{E}[\tilde{y}_i - \hat{\beta}^T \tilde{x}_i]^2\right) \\
+&= \frac{1}{M} \sum_{i=1}^M \left(\operatorname{Var}(\tilde{y}_i - \hat{\beta}^T \tilde{x}_i) + \left(\operatorname{E}[\tilde{y}_i] - \hat{\beta}^T \operatorname{E}[\tilde{x}_i]\right)^2\right) \\
+&= \frac{1}{M} \sum_{i=1}^M \left(\operatorname{Var}(\tilde{y}_i - \hat{\beta}^T \tilde{x}_i) + \left(\hat{\beta}^T \tilde{x}_i - \hat{\beta}^T \tilde{x}_i\right)^2\right) \\
+&= \frac{1}{M} \sum_{i=1}^M \left(\operatorname{Var}(\tilde{y}_i - \hat{\beta}^T \tilde{x}_i) + 0\right) \\
+&= \frac{1}{M} \sum_{i=1}^M \operatorname{Var}(\tilde{y}_i - \hat{\beta}^T \tilde{x}_i) \\
+&= \operatorname{Var}(\tilde{y} - X\hat{\beta})
+\end{aligned}
+$$
+Since the training data and test data are drawn at random from the same population, the expected value of the training error is less than the expected value of the test error. This is because the training error is based on the same data that the model was fit to, while the test error is based on new data that the model was not fit to.
