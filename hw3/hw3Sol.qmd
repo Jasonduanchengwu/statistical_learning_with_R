@@ -354,7 +354,38 @@ of i. through v. is correct. Justify your answer.
 
 ## ISL Exercise 6.6.4 (10pts) 
 
+Suppose we estimate the regression coefficients in a linear regression
+model by minimizing
+
+$$
+\sum_{i=1}^{n} (y_i - \beta_0 - \sum_{j=1}^{p} \beta_j x_{ij})^2 + \lambda \sum_{j=1}^{p} \beta_j^2
+$$
+for a particular value of !. For parts (a) through (e), indicate which
+of i. through v. is correct. Justify your answer.
+
+(a) As we increase $\lambda$ from 0, the training RSS will:
+
+**Answer: ** Steadily increase. As $\lambda$ increases, the shrinkage term will increase, and the training RSS will increase as the model becomes less flexible.
+
+(b) Repeat (a) for test RSS.
+
+**Answer: ** Decrease initially, and then eventually start increasing in a U shape. As $\lambda$ increases, the model becomes less flexible, and the test RSS will decrease initially since the reduction in variance will outweigh the cost of shrinking. However, as $\lambda$ becomes very large, the model will become too inflexible and the test RSS will start to increase due to underfitting and increased bias outweights the decreased variance.
+
+(c) Repeat (a) for variance.
+
+**Answer: ** Steadily decrease. As $\lambda$ increases, the model becomes less flexible as $\beta$ shrunk towards 0, and the variance will decrease.
+
+(d) Repeat (a) for (squared) bias.
+
+**Answer: ** Steadily increase. As $\lambda$ increases, the model becomes less flexible as $\beta$ shrunk towards 0, and the bias will increase.
+
+(e) Repeat (a) for the irreducible error.
+
+**Answer: ** Remain constant. The irreducible error is the error that cannot be reduced by any model, and will remain constant as $\lambda$ increases.
+
 ## ISL Exercise 6.6.5 (10pts) 
+
+
 
 ## ISL Exercise 6.6.11 (30pts) 
 
