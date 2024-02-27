@@ -30,8 +30,6 @@ each of these quantities as a function of \(\hat{p}_{m1}\). The x-axis should
 display \(\hat{p}_{m1}\), ranging from 0 to 1, and the y-axis should display the
 value of the Gini index, classification error, and entropy.
 
-![](./8.3.png)
-
 Hint: In a setting with two classes, \(\hat{p}_{m1}\) = 1− \(\hat{p}_{m2}\). You could make
 this plot by hand, but it will be much easier to make in R.
 
@@ -91,7 +89,49 @@ data.frame(phat.m1, phat.m2, class_error, gini_index, entropy) %>%
 ```
 ## ISL Exercise 8.4.4 (10pts)
 
-**Answer: **
+This question relates to the plots in Figure 8.14.
+
+![](./8.3.png)
+
+(a) Sketch the tree corresponding to the partition of the predictor
+space illustrated in the left-hand panel of Figure 8.14. The numbers
+inside the boxes indicate the mean of Y within each region.
+
+**Answer: ** 
+
+![](./8.4.4.a.jpg)
+
+(b) Create a diagram similar to the left-hand panel of Figure 8.14,
+using the tree illustrated in the right-hand panel of the same
+figure. You should divide up the predictor space into the correct
+regions, and indicate the mean for each region.
+
+**Answer: ** 
+
+```{r}
+library(ggplot2)
+
+# Create an empty plot
+ggplot() +
+  # set the x and y limits
+  xlim(c(-2, 2)) + 
+  ylim(c(-3, 3)) +
+  # Add rectangles for the regions
+  geom_rect(aes(xmin=-2, xmax=2, ymin=2, ymax=3), fill="white", color="black") +
+  geom_rect(aes(xmin=0, xmax=2, ymin=1, ymax=2), fill="white", color="black") +
+  geom_rect(aes(xmin=-2, xmax=0, ymin=1, ymax=2), fill="white", color="black") +
+  geom_rect(aes(xmin=-2, xmax=1, ymin=-3, ymax=1), fill="white", color="black") +
+  geom_rect(aes(xmin=1, xmax=2, ymin=-3, ymax=1), fill="white", color="black") +
+  # Annotate the regions with the corresponding mean values
+  annotate("text", x = 0, y = 2.5, label = "Mean = 2.49", size=4) + 
+  annotate("text", x = -1, y = 1.5, label = "Mean = -1.06", size=4) +
+  annotate("text", x = 1, y = 1.5, label = "Mean = 0.21", size=4) +
+  annotate("text", x = -0.5, y = -1, label = "Mean = -1.80", size=4) +
+  annotate("text", x = 1.5, y = -1, label = "Mean = 0.63", size=4) +
+  # Add labels and theme adjustments
+  labs(x="X1", y="X2", title="Feature Space Divided by Decision Tree") +
+  theme_minimal()
+```
 
 ## ISL Exercise 8.4.5 (10pts)
 
