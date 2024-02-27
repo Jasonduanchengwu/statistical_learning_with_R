@@ -1,0 +1,111 @@
+---
+title: "Biostat 212a Homework 4"
+subtitle: "Due Mar. 5, 2024 @ 11:59PM"
+author: "Chengwu Duan and 606332825"
+date: today
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+engine: knitr
+knitr:
+  opts_chunk: 
+    fig.align: 'center'
+    # fig.width: 6
+    # fig.height: 4
+    message: FALSE
+    cache: false
+---
+
+## ISL Exercise 8.4.3 (10pts)
+
+Consider the Gini index, classification error, and entropy in a simple
+classification setting with two classes. Create a single plot that displays
+each of these quantities as a function of \(\hat{p}_{m1}\). The x-axis should
+display \(\hat{p}_{m1}\), ranging from 0 to 1, and the y-axis should display the
+value of the Gini index, classification error, and entropy.
+
+![](./8.3.png)
+
+Hint: In a setting with two classes, \(\hat{p}_{m1}\) = 1− \(\hat{p}_{m2}\). You could make
+this plot by hand, but it will be much easier to make in R.
+
+**Answer: **
+
+\(\hat{p}_{mk}\) is the proportion of training observations in the \(m^{th}\) region that are from the \(k^{th}\) class. 
+
+The Gini index is defined by
+
+$$
+\begin{align}
+G &= \sum_{k=1}^{K} \hat{p}_{mk} (1 - \hat{p}_{mk})\\
+&= \hat{p}_{m1} (1 - \hat{p}_{m1}) + \hat{p}_{m2} (1 - \hat{p}_{m2})\\
+\end{align}
+$$
+Classification error is defined by
+
+$$
+\begin{align}
+E &= 1 - \max_k \hat{p}_{mk}\\
+&= 1 - \max(\hat{p}_{m1}, \hat{p}_{m2})
+\end{align}
+$$
+Entropy is defined by
+
+$$
+\begin{align}
+D &= -\sum_{k=1}^{K} \hat{p}_{mk} \log \hat{p}_{mk}\\
+&= -\hat{p}_{m1} \log \hat{p}_{m1} - \hat{p}_{m2} \log \hat{p}_{m2}
+\end{align}
+$$
+
+```{r, message = F, warning=F}
+library(tidyverse)
+library(ggplot2)
+
+phat.m1 <- seq(0, 1, 0.001)
+phat.m2 <- 1 - phat.m1
+
+gini_index <- phat.m1*(1-phat.m1) + phat.m2*(1-phat.m2)
+class_error <- 1 - pmax(phat.m1, phat.m2)
+entropy <- -phat.m1*log(phat.m1) - phat.m2*log(phat.m2)
+
+
+data.frame(phat.m1, phat.m2, class_error, gini_index, entropy) %>%
+  pivot_longer(cols = c(class_error, gini_index, entropy), names_to = "measures") %>%
+    ggplot(aes(x = phat.m1, y = value, col = factor(measures))) + 
+    geom_line() + 
+    scale_y_continuous(breaks = seq(0, 1, 0.1), minor_breaks = NULL) + 
+    scale_color_hue(labels = c("Classification Error", "Entropy", "Gini Index")) +
+    labs(title = "Gini Index, Classification Error, and Entropy", 
+         subtitle = "as a function of p_hat_m1",
+         col = "Measures", 
+         y = "Value", 
+         x = "Proportion of m1") +
+  theme_bw()
+```
+## ISL Exercise 8.4.4 (10pts)
+
+**Answer: **
+
+## ISL Exercise 8.4.5 (10pts)
+
+**Answer: **
+
+## ISL Lab 8.3. `Boston` data set (30pts)
+
+Follow the machine learning workflow to train regression tree, random forest, and boosting methods for predicting `medv`. Evaluate out-of-sample performance on a test set.
+
+**Answer: **
+
+## ISL Lab 8.3 `Carseats` data set (30pts)
+
+Follow the machine learning workflow to train classification tree, random forest, and boosting methods for classifying `Sales <= 8` versus `Sales > 8`. Evaluate out-of-sample performance on a test set.
+
+**Answer: **
+
