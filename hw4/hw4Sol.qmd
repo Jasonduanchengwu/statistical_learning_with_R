@@ -135,7 +135,32 @@ ggplot() +
 
 ## ISL Exercise 8.4.5 (10pts)
 
+Suppose we produce ten bootstrapped samples from a data set
+containing red and green classes. We then apply a classification tree
+to each bootstrapped sample and, for a specific value of X, produce
+10 estimates of P(Class is Red|X):
+
+0.1, 0.15, 0.2, 0.2, 0.55, 0.6, 0.6, 0.65, 0.7, and 0.75.
+
+There are two common ways to combine these results together into a
+single class prediction. One is the majority vote approach discussed in
+this chapter. The second approach is to classify based on the average
+probability. In this example, what is the final classification under each
+of these two approaches?
+
 **Answer: **
+
+```{r}
+probs <- c(0.1, 0.15, 0.2, 0.2, 0.55, 0.6, 0.6, 0.65, 0.7, 0.75)
+
+# Majority vote approach
+(Majority_vote_approach <- ifelse(sum(probs > 0.5) > 5, "red", "green"))
+
+# Average approach
+(Average_approach <- ifelse(mean(probs) > 0.5, "red", "green"))
+```
+
+The majority vote approach would classify the observation as red, since 6 out of the 10 trees predict a probability of red more than 0.5. The average probability approach would classify the observation as green, since the average of the 10 probabilities is 0.45.
 
 ## ISL Lab 8.3. `Boston` data set (30pts)
 
