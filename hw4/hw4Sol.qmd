@@ -26,16 +26,16 @@ knitr:
 
 Consider the Gini index, classification error, and entropy in a simple
 classification setting with two classes. Create a single plot that displays
-each of these quantities as a function of \(\hat{p}_{m1}\). The x-axis should
-display \(\hat{p}_{m1}\), ranging from 0 to 1, and the y-axis should display the
+each of these quantities as a function of $\hat{p}_{m1}$. The x-axis should
+display $\hat{p}_{m1}$, ranging from 0 to 1, and the y-axis should display the
 value of the Gini index, classification error, and entropy.
 
-Hint: In a setting with two classes, \(\hat{p}_{m1}\) = 1− \(\hat{p}_{m2}\). You could make
+Hint: In a setting with two classes, $\hat{p}_{m1}$ = 1− $\hat{p}_{m2}$. You could make
 this plot by hand, but it will be much easier to make in R.
 
 **Answer: **
 
-\(\hat{p}_{mk}\) is the proportion of training observations in the \(m^{th}\) region that are from the \(k^{th}\) class. 
+$\hat{p}_{mk}$ is the proportion of training observations in the $m^{th}$ region that are from the $k^{th}$ class. 
 
 The Gini index is defined by
 
@@ -168,9 +168,513 @@ Follow the machine learning workflow to train regression tree, random forest, an
 
 **Answer: **
 
+```{r}
+sessionInfo()
+```
+### RF for prediction
+
+```{r}
+library(GGally)
+library(gtsummary)
+library(ranger)
+library(tidyverse)
+library(tidymodels)
+library(ISLR2)
+
+# Numerical summaries stratified by the outcome `AHD`.
+Boston %>% tbl_summary()
+
+# reproducibility
+set.seed(123)
+
+# Split the data into training and testing sets
+data_split <- initial_split(
+  Boston, 
+  prop = 0.5
+  )
+data_split
+
+boston_train <- training(data_split)
+dim(boston_train)
+
+boston_test <- testing(data_split)
+dim(boston_test)
+
+rf_recipe <-
+  recipe(
+    medv ~ .,
+    data = boston_train
+  ) %>%
+  # create traditional dummy variables (not necessary for random forest in R)
+  # omit all NAs in medv
+  step_naomit(medv) %>%
+  # zero-variance filter
+  step_zv(all_numeric_predictors()) %>%
+  # center and scale numeric data (not necessary for random forest)
+  # estimate the means and standard deviations
+  prep(training = boston_train, retain = TRUE)
+
+rf_recipe
+
+rf_model <-
+  rand_forest(
+    mode = "regression",
+    # number of predictors randomly sampled in each split
+    mtry = tune(),
+    # number of trees in ensemble
+    trees = tune()
+  ) %>%
+  set_engine("ranger")
+
+rf_model
+
+rf_workflow <-
+  workflow() %>%
+  add_recipe(rf_recipe) %>%
+  add_model(rf_model)
+
+rf_workflow
+```
+### TBF - RF grid ranges need adjustments
+
+```{r}
+rf_grid <- grid_regular(
+  trees(range = c(100L, 300L)),
+  mtry(range = c(1L, 5L)),
+  levels = c(3,5)
+  )
+rf_grid
+
+set.seed(203)
+
+folds <- vfold_cv(boston_train, v = 5)
+folds
+
+rf_fit <- rf_workflow %>%
+  tune_grid(
+    resamples = folds,
+    grid = rf_grid,
+    metrics = metric_set(rmse, rsq)
+    )
+rf_fit
+
+rf_fit %>%
+  collect_metrics() %>%
+  print(width = Inf) %>%
+  filter(.metric == "rmse") %>%
+  mutate(mtry = as.factor(mtry)) %>%
+  ggplot(mapping = aes(x = trees, y = mean, color = mtry)) +
+  # geom_point() + 
+  geom_line() + 
+  labs(x = "Num. of Trees", y = "CV mse")
+
+rf_fit %>%
+  show_best("rmse")
+
+best_rf <- rf_fit %>%
+  select_best("rmse")
+best_rf
+
+# Final workflow
+final_wf <- rf_workflow %>%
+  finalize_workflow(best_rf)
+final_wf
+
+# Fit the whole training set, then predict the test cases
+final_fit <- 
+  final_wf %>%
+  last_fit(data_split)
+final_fit
+
+# Test metrics
+final_fit %>% 
+  collect_metrics()
+```
+
+### Boosting for prediction
+
+```{r}
+library(GGally)
+library(gtsummary)
+library(ranger)
+library(tidyverse)
+library(tidymodels)
+library(ISLR2)
+
+# Numerical summaries stratified by the outcome `AHD`.
+Boston %>% tbl_summary()
+
+# Split the data into training and testing sets
+data_split <- initial_split(
+  Boston, 
+  prop = 0.5
+  )
+data_split
+
+boston_train <- training(data_split)
+dim(boston_train)
+
+boston_test <- testing(data_split)
+dim(boston_test)
+
+gb_recipe <- 
+  recipe(
+    medv ~ ., 
+    data = boston_train
+  ) %>%
+  # # create traditional dummy variables (not necessary for random forest in R)
+  # step_dummy(all_nominal()) %>%
+  step_naomit(medv) %>%
+  # zero-variance filter
+  step_zv(all_numeric_predictors()) %>% 
+  # # center and scale numeric data (not necessary for random forest)
+  # step_normalize(all_numeric_predictors()) %>%
+  # estimate the means and standard deviations
+  prep(training = boston_train, retain = TRUE)
+gb_recipe
+
+gb_mod <- 
+  boost_tree(
+    mode = "regression",
+    trees = 1000, 
+    tree_depth = tune(),
+    learn_rate = tune()
+  ) %>% 
+  set_engine("xgboost")
+gb_mod
+
+gb_wf <- workflow() %>%
+  add_recipe(gb_recipe) %>%
+  add_model(gb_mod)
+gb_wf
+```
+
+### TBF - Boosting grid ranges need adjustments
+
+```{r}
+param_grid <- grid_regular(
+  tree_depth(range = c(1L, 4L)),
+  learn_rate(range = c(-3, -0.5), trans = log10_trans()),
+  levels = c(4, 10)
+  )
+param_grid
+
+set.seed(203)
+
+folds <- vfold_cv(boston_train, v = 5)
+folds
+
+gb_fit <- gb_wf %>%
+  tune_grid(
+    resamples = folds,
+    grid = param_grid,
+    metrics = metric_set(rmse, rsq)
+    )
+gb_fit
+
+gb_fit %>%
+  collect_metrics() %>%
+  print(width = Inf) %>%
+  filter(.metric == "rmse") %>%
+  ggplot(mapping = aes(x = learn_rate, y = mean, color = factor(tree_depth))) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Learning Rate", y = "CV AUC") +
+  scale_x_log10()
+
+gb_fit %>%
+  show_best("rmse")
+
+best_gb <- gb_fit %>%
+  select_best("rmse")
+best_gb
+
+# Final workflow
+final_wf <- gb_wf %>%
+  finalize_workflow(best_gb)
+final_wf
+
+# Fit the whole training set, then predict the test cases
+final_fit <- 
+  final_wf %>%
+  last_fit(data_split)
+final_fit
+
+# Test metrics
+final_fit %>% 
+  collect_metrics()
+```
+```{r}
+library(vip)
+
+#library(rpart.plot)
+final_tree <- extract_workflow(final_fit)
+final_tree
+
+final_tree %>% 
+  extract_fit_parsnip() %>% 
+  vip()
+```
+
 ## ISL Lab 8.3 `Carseats` data set (30pts)
 
 Follow the machine learning workflow to train classification tree, random forest, and boosting methods for classifying `Sales <= 8` versus `Sales > 8`. Evaluate out-of-sample performance on a test set.
 
 **Answer: **
 
+### RF for classification
+
+```{r}
+# Load libraries
+library(GGally)
+library(gtsummary)
+library(ranger)
+library(tidyverse)
+library(tidymodels)
+library(ISLR2)
+
+# checking for missing values
+summary(Carseats)
+colSums(is.na(Carseats))
+
+Carseats %>% tbl_summary()
+
+# For reproducibility
+set.seed(203)
+
+# creating an outcome variable
+carseats <- Carseats %>%
+  mutate(SalesHL = ifelse(Sales <= 8, "Low", "High"))
+
+data_split <- initial_split(
+  carseats, 
+  # stratify by AHD
+  strata = "SalesHL", 
+  prop = 0.75
+  )
+data_split
+
+carseats_train <- training(data_split)
+dim(carseats_train)
+
+carseats_test <- testing(data_split)
+dim(carseats_test)
+
+rf_recipe <- 
+  recipe(
+    SalesHL ~ ., 
+    data = carseats_train
+  ) %>%
+  # # create traditional dummy variables (not necessary for random forest in R)
+  # step_dummy(all_nominal()) %>%
+  
+  # no NAs in carseats
+  # # mean imputation for Ca
+  # step_impute_mean(Ca) %>%
+  # # mode imputation for Thal
+  # step_impute_mode(Thal) %>%
+  
+  
+  # zero-variance filter
+  step_zv(all_numeric_predictors()) %>% 
+  # # center and scale numeric data (not necessary for random forest)
+  # step_normalize(all_numeric_predictors()) %>%
+  # estimate the means and standard deviations
+  prep(training = carseats_train, retain = TRUE)
+rf_recipe
+
+rf_mod <- 
+  rand_forest(
+    mode = "classification",
+    # Number of predictors randomly sampled in each split
+    mtry = tune(),
+    # Number of trees in ensemble
+    trees = tune()
+  ) %>% 
+  set_engine("ranger")
+rf_mod
+
+rf_wf <- workflow() %>%
+  add_recipe(rf_recipe) %>%
+  add_model(rf_mod)
+rf_wf
+```
+
+### TBF - RF grid ranges need adjustments
+
+```{r}
+param_grid <- grid_regular(
+  trees(range = c(100L, 300L)), 
+  mtry(range = c(1L, 5L)),
+  levels = c(3, 5)
+  )
+param_grid
+
+set.seed(203)
+
+folds <- vfold_cv(carseats_train, v = 5)
+folds
+
+rf_fit <- rf_wf %>%
+  tune_grid(
+    resamples = folds,
+    grid = param_grid,
+    metrics = metric_set(roc_auc, accuracy)
+    )
+rf_fit
+
+rf_fit %>%
+  collect_metrics() %>%
+  print(width = Inf) %>%
+  filter(.metric == "roc_auc") %>%
+  mutate(mtry = as.factor(mtry)) %>%
+  ggplot(mapping = aes(x = trees, y = mean, color = mtry)) +
+  # geom_point() + 
+  geom_line() + 
+  labs(x = "Num. of Trees", y = "CV AUC")
+
+rf_fit %>%
+  show_best("roc_auc")
+
+best_rf <- rf_fit %>%
+  select_best("roc_auc")
+best_rf
+
+# Final workflow
+final_wf <- rf_wf %>%
+  finalize_workflow(best_rf)
+final_wf
+
+# Fit the whole training set, then predict the test cases
+final_fit <- 
+  final_wf %>%
+  last_fit(data_split)
+final_fit
+
+# Test metrics
+final_fit %>% 
+  collect_metrics()
+```
+### boosting for classification
+
+```{r}
+# Load libraries
+library(GGally)
+library(gtsummary)
+library(ranger)
+library(tidyverse)
+library(tidymodels)
+library(xgboost)
+
+# checking for missing values
+summary(Carseats)
+colSums(is.na(Carseats))
+
+Carseats %>% tbl_summary()
+
+# For reproducibility
+set.seed(212)
+
+# creating an outcome variable
+carseats <- Carseats %>%
+  mutate(SalesHL = ifelse(Sales <= 8, "Low", "High"))
+
+data_split <- initial_split(
+  carseats, 
+  # stratify by AHD
+  strata = "SalesHL", 
+  prop = 0.75
+  )
+data_split
+
+carseats_train <- training(data_split)
+dim(carseats_train)
+
+carseats_test <- testing(data_split)
+dim(carseats_test)
+
+gb_recipe <- 
+  recipe(
+    SalesHL ~ ., 
+    data = carseats_train
+  ) %>%
+  # create traditional dummy variables (necessary for xgboost)
+  step_dummy(all_nominal_predictors()) %>%
+  # zero-variance filter
+  step_zv(all_numeric_predictors()) %>% 
+  # estimate the means and standard deviations
+  prep(training = carseats_train, retain = TRUE)
+gb_recipe
+
+gb_mod <- 
+  boost_tree(
+    mode = "classification",
+    trees = 1000, 
+    tree_depth = tune(),
+    learn_rate = tune()
+  ) %>% 
+  set_engine("xgboost")
+gb_mod
+
+gb_wf <- workflow() %>%
+  add_recipe(gb_recipe) %>%
+  add_model(gb_mod)
+gb_wf
+```
+
+### TBF - Boosting grid ranges need adjustments
+
+```{r}
+param_grid <- grid_regular(
+  tree_depth(range = c(1L, 3L)),
+  learn_rate(range = c(-5, 2), trans = log10_trans()),
+  levels = c(3, 10)
+  )
+param_grid
+
+set.seed(203)
+
+folds <- vfold_cv(carseats_train, v = 5)
+folds
+
+gb_fit <- gb_wf %>%
+  tune_grid(
+    resamples = folds,
+    grid = param_grid,
+    metrics = metric_set(roc_auc, accuracy)
+    )
+gb_fit
+
+gb_fit %>%
+  collect_metrics() %>%
+  print(width = Inf) %>%
+  filter(.metric == "roc_auc") %>%
+  mutate(tree_depth = as.factor(tree_depth)) %>%
+  ggplot(mapping = aes(x = learn_rate, y = mean, color = tree_depth)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Learning Rate", y = "CV AUC") +
+  scale_x_log10()
+
+gb_fit %>%
+  show_best("roc_auc")
+
+best_gb <- gb_fit %>%
+  select_best("roc_auc")
+best_gb
+
+# Final workflow
+final_wf <- gb_wf %>%
+  finalize_workflow(best_gb)
+final_wf
+
+# Fit the whole training set, then predict the test cases
+final_fit <- 
+  final_wf %>%
+  last_fit(data_split)
+final_fit
+
+# Test metrics
+final_fit %>% 
+  collect_metrics()
+```
