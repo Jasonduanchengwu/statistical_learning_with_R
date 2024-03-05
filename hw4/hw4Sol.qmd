@@ -61,6 +61,11 @@ D &= -\sum_{k=1}^{K} \hat{p}_{mk} \log \hat{p}_{mk}\\
 &= -\hat{p}_{m1} \log \hat{p}_{m1} - \hat{p}_{m2} \log \hat{p}_{m2}
 \end{align}
 $$
+```{r}
+library(memuse)
+# check how much RAM
+memuse::Sys.meminfo()
+```
 
 ```{r, message = F, warning=F}
 library(tidyverse)
@@ -180,6 +185,7 @@ library(ranger)
 library(tidyverse)
 library(tidymodels)
 library(ISLR2)
+library(workflows)
 
 # Numerical summaries stratified by the outcome `AHD`.
 Boston %>% tbl_summary()
@@ -209,10 +215,10 @@ rf_recipe <-
   # omit all NAs in medv
   step_naomit(medv) %>%
   # zero-variance filter
-  step_zv(all_numeric_predictors()) %>%
+  step_zv(all_numeric_predictors()) 
   # center and scale numeric data (not necessary for random forest)
   # estimate the means and standard deviations
-  prep(training = boston_train, retain = TRUE)
+  # prep(training = boston_train, retain = TRUE)
 
 rf_recipe
 
@@ -235,13 +241,12 @@ rf_workflow <-
 
 rf_workflow
 ```
-### TBF - RF grid ranges need adjustments
 
 ```{r}
 rf_grid <- grid_regular(
-  trees(range = c(100L, 300L)),
-  mtry(range = c(1L, 5L)),
-  levels = c(3,5)
+  trees(range = c(100L, 1500L)),
+  mtry(range = c(1L, 4L)),
+  levels = c(15,4)
   )
 rf_grid
 
@@ -290,6 +295,7 @@ final_fit
 final_fit %>% 
   collect_metrics()
 ```
+**Answer: ** The best training rmse is about 3.64 while the test rmse is about 3.58, inferring that the model was not overfitting. There is a slight improvement in the prediction accruacy of the test set. The test error magnitude of 3.58 suggests that the model prediction will deviate from the true median value by about $3,580 on average in the context of `medv`. If home values are generally high this deviation of 3500 dollars may be acceptable but with low value homes this can contribute to a significant error. For a general purpose prediction, this approach can be acceptable, but a test rmse is not exactly low.
 
 ### Boosting for prediction
 
@@ -326,11 +332,11 @@ gb_recipe <-
   # step_dummy(all_nominal()) %>%
   step_naomit(medv) %>%
   # zero-variance filter
-  step_zv(all_numeric_predictors()) %>% 
+  step_zv(all_numeric_predictors())
   # # center and scale numeric data (not necessary for random forest)
   # step_normalize(all_numeric_predictors()) %>%
   # estimate the means and standard deviations
-  prep(training = boston_train, retain = TRUE)
+  # prep(training = boston_train, retain = TRUE)
 gb_recipe
 
 gb_mod <- 
@@ -349,12 +355,11 @@ gb_wf <- workflow() %>%
 gb_wf
 ```
 
-### TBF - Boosting grid ranges need adjustments
 
 ```{r}
 param_grid <- grid_regular(
   tree_depth(range = c(1L, 4L)),
-  learn_rate(range = c(-3, -0.5), trans = log10_trans()),
+  learn_rate(range = c(-10, -0.5), trans = log10_trans()),
   levels = c(4, 10)
   )
 param_grid
@@ -404,6 +409,9 @@ final_fit
 final_fit %>% 
   collect_metrics()
 ```
+
+**Answer: ** The best training rmse is about 3.06 while the test rmse is about 3.49. There is a slight downgrade in the prediction accruacy of the test set. The test error magnitude of 3.49 suggests that the model prediction will deviate from the true median value by about $3,490 on average in the context of `medv`. In comparison, boosting tree performed better than random forest with a lower rmse estimate, but the improvement is marginal.
+
 ```{r}
 library(vip)
 
@@ -415,6 +423,8 @@ final_tree %>%
   extract_fit_parsnip() %>% 
   vip()
 ```
+
+**Answer: ** The 
 
 ## ISL Lab 8.3 `Carseats` data set (30pts)
 
@@ -476,11 +486,11 @@ rf_recipe <-
   
   
   # zero-variance filter
-  step_zv(all_numeric_predictors()) %>% 
+  step_zv(all_numeric_predictors())
   # # center and scale numeric data (not necessary for random forest)
   # step_normalize(all_numeric_predictors()) %>%
   # estimate the means and standard deviations
-  prep(training = carseats_train, retain = TRUE)
+  # prep(training = carseats_train, retain = TRUE)
 rf_recipe
 
 rf_mod <- 
@@ -504,9 +514,9 @@ rf_wf
 
 ```{r}
 param_grid <- grid_regular(
-  trees(range = c(100L, 300L)), 
-  mtry(range = c(1L, 5L)),
-  levels = c(3, 5)
+  trees(range = c(1L, 1000L)), 
+  mtry(range = c(1L, 6L)),
+  levels = c(9, 6)
   )
 param_grid
 
@@ -601,9 +611,9 @@ gb_recipe <-
   # create traditional dummy variables (necessary for xgboost)
   step_dummy(all_nominal_predictors()) %>%
   # zero-variance filter
-  step_zv(all_numeric_predictors()) %>% 
+  step_zv(all_numeric_predictors())
   # estimate the means and standard deviations
-  prep(training = carseats_train, retain = TRUE)
+  # prep(training = carseats_train, retain = TRUE)
 gb_recipe
 
 gb_mod <- 
