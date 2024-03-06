@@ -424,7 +424,6 @@ final_tree %>%
   vip()
 ```
 
-**Answer: ** The 
 
 ## ISL Lab 8.3 `Carseats` data set (30pts)
 
@@ -454,7 +453,8 @@ set.seed(203)
 
 # creating an outcome variable
 carseats <- Carseats %>%
-  mutate(SalesHL = ifelse(Sales <= 8, "Low", "High"))
+  mutate(SalesHL = ifelse(Sales <= 8, "Low", "High")) %>%
+  select(-Sales)
 
 data_split <- initial_split(
   carseats, 
@@ -510,7 +510,6 @@ rf_wf <- workflow() %>%
 rf_wf
 ```
 
-### TBF - RF grid ranges need adjustments
 
 ```{r}
 param_grid <- grid_regular(
@@ -565,6 +564,9 @@ final_fit
 final_fit %>% 
   collect_metrics()
 ```
+
+**Answer: ** The best training roc_auc is at 0.877 while the test roc_auc is at 0.880. There is a slight improvement in the prediction of the test set. There is no overfitting because my test score performed better than the training score. A score of 0.880 suggests that the model has a high degree of discriminatory power, meaning it can effectively differentiate between the High Sales and Low Sales categories based on the predictors included in the Carseats.
+
 ### boosting for classification
 
 ```{r}
@@ -575,6 +577,7 @@ library(ranger)
 library(tidyverse)
 library(tidymodels)
 library(xgboost)
+library(ISLR2)
 
 # checking for missing values
 summary(Carseats)
@@ -587,7 +590,8 @@ set.seed(212)
 
 # creating an outcome variable
 carseats <- Carseats %>%
-  mutate(SalesHL = ifelse(Sales <= 8, "Low", "High"))
+  mutate(SalesHL = ifelse(Sales <= 8, "Low", "High")) %>%
+  select(-Sales)
 
 data_split <- initial_split(
   carseats, 
@@ -632,13 +636,12 @@ gb_wf <- workflow() %>%
 gb_wf
 ```
 
-### TBF - Boosting grid ranges need adjustments
 
 ```{r}
 param_grid <- grid_regular(
-  tree_depth(range = c(1L, 3L)),
-  learn_rate(range = c(-5, 2), trans = log10_trans()),
-  levels = c(3, 10)
+  tree_depth(range = c(1L, 5L)),
+  learn_rate(range = c(-3, 4), trans = log10_trans()),
+  levels = c(5, 7)
   )
 param_grid
 
@@ -688,3 +691,5 @@ final_fit
 final_fit %>% 
   collect_metrics()
 ```
+
+**Answer: ** The best training roc_auc is at 0.921 while the test roc_auc is at 0.895. The slight decrease in roc_auc suggests that there might be a small amount of overfitting. However, the gap is not large, indicating that any overfitting is likely minimal. A score of 0.895 suggests that the model has a high degree of discriminatory power, meaning it can effectively differentiate between the High Sales and Low Sales categories based on the predictors included in the Carseats. Although there is risk of overfitting but the boosting tree method has a better test performance with a higher roc_auc estimate.
