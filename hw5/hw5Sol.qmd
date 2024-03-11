@@ -206,3 +206,32 @@ $$
 f(X) = \beta_0 + \beta_1 X_1 + \cdots + \beta_p X_p = \beta_0 + \beta^T X. 
 $$
 Then $f(X)=0$ defines a hyperplane in $\mathbb{R}^p$. Show that $f(x)$ is proportional to the signed distance of a point $x$ to the hyperplane $f(X) = 0$. 
+
+**Answer: **
+
+The signed distance of a point $x$ to the hyperplane $f(X) = 0$ is given by the formula:
+
+$$
+\frac{f(x)}{\| \beta \|} = \frac{\beta_0 + \beta^T x}{\| \beta \|}
+$$
+
+where $\| \beta \|$ is the Euclidean norm of the vector $\beta$. This formula can be derived from the definition of the dot product and the Euclidean norm. The numerator $f(x)$ is the projection of the vector $x$ onto the vector $\beta$, and the denominator $\| \beta \|$ is the length of the vector $\beta$. Therefore, the signed distance of a point $x$ to the hyperplane $f(X) = 0$ is proportional to $f(x)$. 
+
+
+$$
+f(x_0) =  \beta_0 + \beta^T x_0 = 0
+$$
+Now consider any point x in $\mathbb{R}^p$. Let d be the signed distance from x to the hyperplane along the direction of the normal vector $\beta$. The point on the hyperplane that is closest to x, denoted as $x_0$, can be written in terms of x and d:
+
+$$
+x_0 = x - d \frac{\beta}{\| \beta \|} \\
+f(x_0) =  \beta_0 + \beta^T x_0 = 0 \\
+0 = \beta_0 + \beta^T (x - d \frac{\beta}{\| \beta \|}) \\
+0 = \beta_0 + \beta^T x - d \frac{\beta^T \beta}{\| \beta \|} \\
+0 = \beta_0 + \beta^T x - d \|\beta\|  \\
+\beta_0 + \beta^T x = d \|\beta\|  \\
+f(x) = d \|\beta\|  \\
+$$
+
+Therefore $f(x)$ is proportional to the signed distance of a point $x$ to the hyperplane $f(X) = 0$.
+
