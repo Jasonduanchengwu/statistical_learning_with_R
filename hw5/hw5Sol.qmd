@@ -69,6 +69,8 @@ The color intensity reflects the magnitude of the value $1 + 3X_1 + X_2$: darker
 Indicate the set of points for which $−2 + X_1 + 2X_2 > 0$, as well
 as the set of points for which $−2 + X_1 + 2X_2 < 0$.
 
+#### On the same plot
+
 ```{r}
 library(ggplot2)
 
@@ -199,6 +201,297 @@ This equation becomes a linear combination of the terms $X_1, X_1^2 , X_2, and X
 
 Follow the machine learning workflow to train support vector classifier (same as SVM with linear kernel), SVM with polynomial kernel (tune the degree and regularization parameter $C$), and SVM with radial kernel (tune the scale parameter $\gamma$ and regularization parameter $C$) for classifying `Sales<=8` versus `Sales>8`. Use the same seed as in your HW4 for the initial test/train split and compare the final test AUC and accuracy to those methods you tried in HW4.
 
+### SVM with Radical Kernel
+
+```{r}
+# Load libraries
+library(GGally)
+library(gtsummary)
+library(kernlab)
+library(tidyverse)
+library(tidymodels)
+library(ISLR2)
+
+# For reproducibility
+set.seed(203)
+
+# creating an outcome variable
+carseats <- Carseats %>%
+  mutate(SalesHL = ifelse(Sales <= 8, "Low", "High")) %>%
+  select(-Sales)
+
+# Numerical summaries stratified by the outcome `SalesHL`.
+carseats %>% tbl_summary(by = SalesHL)
+
+data_split <- initial_split(
+  carseats, 
+  strata = "SalesHL", 
+  prop = 0.75
+  )
+data_split
+
+carseats_train <- training(data_split)
+dim(carseats_train)
+
+carseats_test <- testing(data_split)
+dim(carseats_test)
+
+svm_recipe <- 
+  recipe(
+    SalesHL ~ ., 
+    data = carseats_train
+  ) %>%
+  # create traditional dummy variables (necessary for svm)
+  step_dummy(all_nominal_predictors()) %>%
+  # zero-variance filter
+  step_zv(all_numeric_predictors()) %>% 
+  # center and scale numeric data
+  step_normalize(all_numeric_predictors())
+  # estimate the means and standard deviations
+  # prep(training = Heart_other, retain = TRUE)
+svm_recipe
+
+svm_mod <- 
+  svm_rbf(
+    mode = "classification",
+    cost = tune(),
+    rbf_sigma = tune()
+  ) %>% 
+  set_engine("kernlab")
+svm_mod
+
+svm_wf <- workflow() %>%
+  add_recipe(svm_recipe) %>%
+  add_model(svm_mod)
+svm_wf
+
+param_grid <- grid_regular(
+  cost(range = c(1, 16)),
+  rbf_sigma(range = c(-4, -2)),
+  levels = c(15, 5)
+  )
+param_grid
+
+set.seed(203)
+
+folds <- vfold_cv(carseats_train, v = 5)
+folds
+
+svm_fit <- svm_wf %>%
+  tune_grid(
+    resamples = folds,
+    grid = param_grid,
+    metrics = metric_set(roc_auc, accuracy)
+    )
+svm_fit
+
+svm_fit %>%
+  collect_metrics() %>%
+  print(width = Inf) %>%
+  filter(.metric == "roc_auc") %>%
+  ggplot(mapping = aes(x = cost, y = mean, alpha = rbf_sigma)) +
+  geom_point() +
+  geom_line(aes(group = rbf_sigma)) +
+  labs(x = "Cost", y = "CV AUC") +
+  scale_x_log10()
+
+svm_fit %>%
+  show_best("roc_auc")
+
+best_svm <- svm_fit %>%
+  select_best("roc_auc")
+best_svm
+
+# Final workflow
+final_wf <- svm_wf %>%
+  finalize_workflow(best_svm)
+final_wf
+
+# Fit the whole training set, then predict the test cases
+final_fit <- 
+  final_wf %>%
+  last_fit(data_split)
+final_fit
+
+# Test metrics
+final_fit %>% 
+  collect_metrics()
+```
+
+### SVM with Polynomial Kernel
+
+```{r}
+# Load libraries
+library(GGally)
+library(gtsummary)
+library(kernlab)
+library(tidyverse)
+library(tidymodels)
+library(ISLR2)
+
+# For reproducibility
+set.seed(203)
+
+# creating an outcome variable
+carseats <- Carseats %>%
+  mutate(SalesHL = ifelse(Sales <= 8, "Low", "High")) %>%
+  select(-Sales)
+
+# Numerical summaries stratified by the outcome `SalesHL`.
+carseats %>% tbl_summary(by = SalesHL)
+
+data_split <- initial_split(
+  carseats, 
+  strata = "SalesHL", 
+  prop = 0.75
+  )
+data_split
+
+carseats_train <- training(data_split)
+dim(carseats_train)
+
+carseats_test <- testing(data_split)
+dim(carseats_test)
+
+svm_recipe <- 
+  recipe(
+    SalesHL ~ ., 
+    data = carseats_train
+  ) %>%
+  # create traditional dummy variables (necessary for svm)
+  step_dummy(all_nominal_predictors()) %>%
+  # zero-variance filter
+  step_zv(all_numeric_predictors()) %>% 
+  # center and scale numeric data
+  step_normalize(all_numeric_predictors())
+  # estimate the means and standard deviations
+  # prep(training = Heart_other, retain = TRUE)
+svm_recipe
+
+svm_mod <- 
+  svm_poly(
+    mode = "classification",
+    cost = tune(),
+    degree = tune(),
+  ) %>% 
+  set_engine("kernlab")
+svm_mod
+
+svm_wf <- workflow() %>%
+  add_recipe(svm_recipe) %>%
+  add_model(svm_mod)
+svm_wf
+```
+
+```{r}
+param_grid <- grid_regular(
+  cost(range = c(-3, 2)),
+  degree(range = c(1, 5)),
+  #scale_factor(range = c(-1, 1)),
+  levels = c(5)
+  )
+param_grid
+
+set.seed(203)
+
+folds <- vfold_cv(carseats_train, v = 5)
+folds
+
+svm_fit <- svm_wf %>%
+  tune_grid(
+    resamples = folds,
+    grid = param_grid,
+    metrics = metric_set(roc_auc, accuracy)
+    )
+svm_fit
+
+svm_fit %>%
+  collect_metrics() %>%
+  print(width = Inf) %>%
+  filter(.metric == "roc_auc" ) %>%
+  ggplot(mapping = aes(x = degree, y = mean)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Cost", y = "CV AUC") +
+  scale_x_log10()
+```
+
+```{r}
+svm_fit %>%
+  show_best("roc_auc")
+
+best_svm <- svm_fit %>%
+  select_best("roc_auc")
+best_svm
+
+# Final workflow
+final_wf <- svm_wf %>%
+  finalize_workflow(best_svm)
+final_wf
+
+# Fit the whole training set, then predict the test cases
+final_fit <- 
+  final_wf %>%
+  last_fit(data_split)
+final_fit
+
+# Test metrics
+final_fit %>% 
+  collect_metrics()
+```
+
+```{r}
+library(doParallel)
+set.seed(101)
+split_obj <- initial_split(data = carseats, prop = 0.7, strata = SalesHL)
+train <- training(split_obj)
+test <- testing(split_obj)
+
+
+# Create the recipe
+recipe(SalesHL ~ ., data = train) %>%
+  # create traditional dummy variables (necessary for svm)
+  step_dummy(all_nominal_predictors()) %>%
+  # zero-variance filter
+  step_zv(all_numeric_predictors()) %>% 
+  # center and scale numeric data
+  step_normalize(all_numeric_predictors()) %>%
+  # estimate the means and standard deviations
+  prep() -> recipe_obj
+
+# Bake
+train <- bake(recipe_obj, new_data=train)
+test <- bake(recipe_obj, new_data=test)
+
+library(vip)
+final_fit %>% 
+  pluck(".workflow", 1) %>%   
+  pull_workflow_fit() %>% 
+  # vip(method = "permute", train= Heart)
+  vip(method = "permute", 
+      target = "SalesHL", metric = "accuracy",
+      pred_wrapper = kernlab::predict, train = train)
+
+svm_rbf_spec <- svm_rbf() %>%
+  set_mode("classification") %>%
+  set_engine("kernlab")
+
+svm_rbf_fit <- svm_rbf_spec %>%
+  fit(SalesHL ~ ., data = train[, c('Price', 'Age', 'SalesHL')])
+
+svm_rbf_fit %>%
+  extract_fit_engine() %>%
+  plot()
+```
+
+### SVM with Linear Kernel TBD
+
+```{r}
+
+```
+
+#### Word explaination TBD
+
 ## Bonus (10pts)
 
 Let
@@ -234,4 +527,3 @@ f(x) = d \|\beta\|  \\
 $$
 
 Therefore $f(x)$ is proportional to the signed distance of a point $x$ to the hyperplane $f(X) = 0$.
-
