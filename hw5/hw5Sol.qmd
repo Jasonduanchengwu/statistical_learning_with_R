@@ -388,7 +388,7 @@ param_grid <- grid_regular(
   cost(range = c(-3, 2)),
   degree(range = c(1, 5)),
   #scale_factor(range = c(-1, 1)),
-  levels = c(5)
+  levels = c(5, 5)
   )
 param_grid
 
@@ -484,13 +484,126 @@ svm_rbf_fit %>%
   plot()
 ```
 
-### SVM with Linear Kernel TBD
+### SVM with Linear Kernel
 
 ```{r}
+# Load libraries
+library(GGally)
+library(gtsummary)
+library(kernlab)
+library(tidyverse)
+library(tidymodels)
+library(ISLR2)
 
+# For reproducibility
+set.seed(203)
+
+# creating an outcome variable
+carseats <- Carseats %>%
+  mutate(SalesHL = ifelse(Sales <= 8, "Low", "High")) %>%
+  select(-Sales)
+
+# Numerical summaries stratified by the outcome `SalesHL`.
+carseats %>% tbl_summary(by = SalesHL)
+
+data_split <- initial_split(
+  carseats, 
+  strata = "SalesHL", 
+  prop = 0.75
+  )
+data_split
+
+carseats_train <- training(data_split)
+dim(carseats_train)
+
+carseats_test <- testing(data_split)
+dim(carseats_test)
+
+svm_recipe <- 
+  recipe(
+    SalesHL ~ ., 
+    data = carseats_train
+  ) %>%
+  # create traditional dummy variables (necessary for svm)
+  step_dummy(all_nominal_predictors()) %>%
+  # zero-variance filter
+  step_zv(all_numeric_predictors()) %>% 
+  # center and scale numeric data
+  step_normalize(all_numeric_predictors())
+  # estimate the means and standard deviations
+  # prep(training = Heart_other, retain = TRUE)
+svm_recipe
+
+# model for linear
+svm_mod <- 
+  svm_linear(
+    mode = "classification",
+    cost = tune()
+  ) %>% 
+  set_engine("kernlab")
+svm_mod
+
+svm_wf <- workflow() %>%
+  add_recipe(svm_recipe) %>%
+  add_model(svm_mod)
+svm_wf
 ```
 
-#### Word explaination TBD
+```{r}
+param_grid <- grid_regular(
+  cost(range = c(-1, 4)),
+  levels = c(5)
+  )
+param_grid
+
+set.seed(203)
+
+folds <- vfold_cv(carseats_train, v = 5)
+folds
+
+svm_fit <- svm_wf %>%
+  tune_grid(
+    resamples = folds,
+    grid = param_grid,
+    metrics = metric_set(roc_auc, accuracy)
+    )
+
+svm_fit %>%
+  collect_metrics() %>%
+  print(width = Inf) %>%
+  filter(.metric == "roc_auc" ) %>%
+  ggplot(mapping = aes(x = cost, y = mean)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Cost", y = "CV AUC") +
+  scale_x_log10()
+```
+
+```{r}
+svm_fit %>%
+  show_best("roc_auc")
+
+best_svm <- svm_fit %>%
+  select_best("roc_auc")
+
+# Final workflow
+final_wf <- svm_wf %>%
+  finalize_workflow(best_svm)
+final_wf
+
+# Fit the whole training set, then predict the test cases
+final_fit <- 
+  final_wf %>%
+  last_fit(data_split)
+
+final_fit
+
+# Test metrics
+final_fit %>% 
+  collect_metrics()
+```
+
+**Answer: ** The final accurary and test AUC is much higher than the methods I used in HW4. In HW4, the best model I got was boosting classification with AUC of 0.89 and accuracy of 0.79. The SVM with radical kernel has an AUC of 0.97 and accuracy of 0.91. The SVM with polynomial kernel has an AUC of 0.971 and accuracy of 0.91. The SVM with linear kernel has an AUC of 0.971 and accuracy of 0.91. I noticed that the SVM with polynomial kernel and SVM with linear kernel have the same AUC and accuracy. and after checking the degree, the best models selected from polynomial kernel is of degree 1, which means it is actually a linear model. The best performing model would be SVM with linear kernel in this context with a higher accuracy and AUC,, inferring that the model is not only classifying the instances correctly but is also confident in its predictions, assigning higher probabilities to the true positive and true negative cases. Model is likely to be more robust and reliable in predicting the outcome to unseen data as well, lower chance for overfitting. A high AUC also indicates that model is reliable even in the case of imbalanced classes.
 
 ## Bonus (10pts)
 
@@ -517,13 +630,15 @@ $$
 Now consider any point x in $\mathbb{R}^p$. Let d be the signed distance from x to the hyperplane along the direction of the normal vector $\beta$. The point on the hyperplane that is closest to x, denoted as $x_0$, can be written in terms of x and d:
 
 $$
-x_0 = x - d \frac{\beta}{\| \beta \|} \\
-f(x_0) =  \beta_0 + \beta^T x_0 = 0 \\
-0 = \beta_0 + \beta^T (x - d \frac{\beta}{\| \beta \|}) \\
-0 = \beta_0 + \beta^T x - d \frac{\beta^T \beta}{\| \beta \|} \\
-0 = \beta_0 + \beta^T x - d \|\beta\|  \\
-\beta_0 + \beta^T x = d \|\beta\|  \\
-f(x) = d \|\beta\|  \\
+\begin{align*}
+x_0 &= x - d \frac{\beta}{\| \beta \|} \\
+f(x_0) &=  \beta_0 + \beta^T x_0 = 0 \\
+0 &= \beta_0 + \beta^T (x - d \frac{\beta}{\| \beta \|}) \\
+0 &= \beta_0 + \beta^T x - d \frac{\beta^T \beta}{\| \beta \|} \\
+0 &= \beta_0 + \beta^T x - d \|\beta\|  \\
+\beta_0 + \beta^T x &= d \|\beta\|  \\
+f(x) &= d \|\beta\|  \\
+\end{align*}
 $$
 
 Therefore $f(x)$ is proportional to the signed distance of a point $x$ to the hyperplane $f(X) = 0$.
