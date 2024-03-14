@@ -94,7 +94,7 @@ The data set is already split into train (before Jan 1st, 1980, $n_{\text{train}
 
 <!-- Include `day_of_week` as a predictor in the models. -->
 
-In general, we will tune the lag $L$ to acheive best forecasting performance. In this project, we would fix $L=5$. That is we always use the previous five trading days' data to forecast today's `log trading volume`.
+In general, we will tune the lag $L$ to achieve best forecasting performance. In this project, we would fix $L=5$. That is we always use the previous five trading days' data to forecast today's `log trading volume`.
 
 Pay attention to the nuance of splitting time series data for cross validation. Study and use the [`time-series`](https://www.tidymodels.org/learn/models/time-series/) functionality in tidymodels. Make sure to use the same splits when tuning different machine learning algorithms.
 
@@ -103,6 +103,14 @@ Use the $R^2$ between forecast and actual values as the cross validation and tes
 ### Baseline method (20 pts)
 
 We use the straw man (use yesterday’s value of `log trading volume` to predict that of today) as the baseline method. Evaluate the $R^2$ of this method on the test data.
+
+```{r}
+#| code-fold: true
+#| label: fig-nyse-baseline
+#| fig-cap: "The baseline method uses yesterday’s value of log trading volume to predict that of today. The $R^2$ of this method on the test data is 0.0."
+
+
+```
 
 ### Autoregression (AR) forecaster (30 pts)
 
@@ -153,7 +161,52 @@ Summarize the performance of different machine learning forecasters in the follo
 | Boosting | | | |
 
 ## ISL Exercise 12.6.13 (90 pts)
+
+On the book website, www.statlearning.com, there is a gene expres-
+sion data set (Ch12Ex13.csv) that consists of 40 tissue samples with
+measurements on 1,000 genes. The first 20 samples are from healthy
+patients, while the second 20 are from a diseased group.
+
+(a) Load in the data using read.csv(). You will need to select
+header = F.
+
+```{r}
+# Read in the gene expression data from url
+url = "https://raw.githubusercontent.com/ucla-biostat-212a/2024winter/master/slides/data/Ch12Ex13.csv"
+gene_exp <- read_csv(url)
+
+gene_exp
+```
+
 ### 12.6.13 (b) (30 pts)
+(b) Apply hierarchical clustering to the samples using correlation-
+based distance, and plot the dendrogram. Do the genes separate
+the samples into the two groups? Do your results depend on the
+type of linkage used?
+
+```{r}
+#| code-fold: true
+#| label: fig-gene-dendrogram
+#| fig-cap: "The dendrogram of hierarchical clustering of the gene expression data. The samples are separated into the two groups."
+#| fig-width: 600
+#| fig-height: 600
+#| fig-align: center
+#| fig-pos: H
+#| fig-subcap: "Correlation-based distance"
+#| fig-subcap: "Euclidean distance"
+#| fig-subcap: "Complete linkage"
+#| fig-subcap: "Single linkage"
+#| fig-subcap: "Average linkage"
+#| fig-subcap: "Centroid linkage"
+#| fig-subcap: "Ward linkage"
+#| fig-subcap: "Median linkage"
+#| 
+```
+
 ### PCA and UMAP (30 pts)
+
 ### 12.6.13 (c) (30 pts)
+(c) Your collaborator wants to know which genes differ the most
+across the two groups. Suggest a way to answer this question,
+and apply it here.
 
