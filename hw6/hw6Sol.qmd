@@ -93,6 +93,7 @@ Do a similar plot for (1) the correlation between $v_t$ and lag $\ell$ `Dow Jone
 
 ```{r}
 seq(1, 30) %>% 
+  # use = "pairwise.complete.obs" only uses obs with non-NAs
   map(function(x) {cor(NYSE$log_volume , lag(NYSE$DJ_return, x), use = "pairwise.complete.obs")}) %>% 
   unlist() %>% 
   tibble(lag = 1:30, cor = .) %>% 
@@ -131,13 +132,10 @@ Use the $R^2$ between forecast and actual values as the cross validation and tes
 
 We use the straw man (use yesterday’s value of `log trading volume` to predict that of today) as the baseline method. Evaluate the $R^2$ of this method on the test data.
 
-```{r}
-#| code-fold: true
-#| label: fig-nyse-baseline
-#| fig-cap: "The baseline method uses yesterday’s value of log trading volume to predict that of today. The $R^2$ of this method on the test data is 0.0."
+this code is uploaded, so we git pull source repo. **
+can try to use map instead of for loop to speed up the process.**
 
-
-```
+linear regression as baseline**
 
 ### Autoregression (AR) forecaster (30 pts)
 
@@ -158,6 +156,10 @@ $$
 known as an **order-$L$ autoregression** model or **AR($L$)**.
 
 - Tune AR(5) with elastic net (lasso + ridge) regularization using all 3 features on the training data, and evaluate the test performance. 
+
+This code will be shared with us**
+data is a time series, thus the data should be split by time. Write own fold spliting function**
+tune the mixture, as long as it is not 0/1 it is still enet.**
 
 - Hint: [Workflow: Lasso](https://ucla-biostat-212a.github.io/2024winter/slides/06-modelselection/workflow_lasso.html) is a good starting point.
 
@@ -238,3 +240,4 @@ across the two groups. Suggest a way to answer this question,
 and apply it here.
 
 #### Use two sample t-test or use linear model to test the difference of gene expression between the two groups.
+
