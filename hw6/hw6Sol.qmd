@@ -280,7 +280,7 @@ sliding_period(NYSE_other %>% arrange(date),
 ### Preprocessing
 
 ```{r}
-en_receipe <- 
+recipe <- 
   recipe(log_volume ~ ., data = NYSE_other) %>% 
   step_dummy(all_nominal(), -all_outcomes()) %>% 
   step_normalize(all_numeric_predictors(), -all_outcomes()) %>%  
@@ -290,7 +290,7 @@ en_receipe <-
 
 ### Model training
 
-```{r}
+```{r, eval=FALSE}
 ### Model
 set.seed(203)
 enet_mod <- 
@@ -303,8 +303,10 @@ enet_mod
 en_wf <- 
   workflow() %>%
   add_model(enet_mod) %>%
-  add_recipe(en_receipe %>% step_rm(date) %>% step_indicate_na())
+  add_recipe(recipe %>% step_rm(date) %>% step_indicate_na())
 en_wf
+
+write_rds(en_wf, "en_wf.rds")
 
 set.seed(203)
 folds <- NYSE_other %>% arrange(date) %>%
@@ -330,18 +332,25 @@ en_fit <- tune_grid(en_wf,
 
 en_fit
 
-show_best(en_fit, "rmse")
+write_rds(en_fit, "en_fit.rds")
+```
+
+```{r}
+en_fit <- read_rds("en_fit.rds")
+en_wf <- read_rds("en_wf.rds")
+
+show_best(en_fit, "rsq")
 
 best_enet <- en_fit %>%
-  select_best("rmse")
+  select_best("rsq")
 best_enet
 
 en_fit %>% collect_metrics() %>%
-  filter(.metric == "rmse") %>%
+  filter(.metric == "rsq") %>%
   ggplot(mapping = aes(x = penalty, y = mean)) +
   geom_point() +
   geom_line() +
-  labs(x = "Penalty", y = "CV RMSE") +
+  labs(x = "Penalty", y = "R Square") +
   scale_x_log10(labels = scales::label_number())
 
 # Final enet workflow
@@ -367,18 +376,11 @@ final_enet_fit %>% collect_metrics()
 
 ### Preprocessing
 
-```{r}
-rf_receipe <- 
-  recipe(log_volume ~ ., data = NYSE_other) %>% 
-  step_dummy(all_nominal(), -all_outcomes()) %>% 
-  step_normalize(all_numeric_predictors(), -all_outcomes()) %>%  
-  step_naomit(all_predictors()) %>%
-  prep(data = NYSE_other)
-```
+**Answer: ** Same recipe as before since same dataset is used.
 
 ### Model training
 
-```{r}
+```{r, eval = FALSE}
 library(doParallel)
 library(ranger)
 
@@ -398,8 +400,10 @@ rf_mod
 rf_wf <- 
   workflow() %>%
   add_model(rf_mod) %>%
-  add_recipe(rf_receipe %>% step_rm(date) %>% step_indicate_na())
+  add_recipe(recipe %>% step_rm(date) %>% step_indicate_na())
 rf_wf
+
+write_rds(rf_wf, "rf_wf.rds")
 
 set.seed(203)
 folds <- NYSE_other %>% arrange(date) %>%
@@ -416,13 +420,13 @@ month_folds <- NYSE_other %>%
 
 rf_grid <-
   grid_regular(
-    trees(range = c(300L, 600L)), 
-    mtry(range = c(1L, 5L)),
-    levels = c(3, 5))
+    trees(range = c(500L, 600L)), 
+    mtry(range = c(3L, 5L)),
+    levels = c(2, 2))
 rf_grid
 
-# Register doParallel as the parallel backend
-# saving 1 cpu for other tasks
+# Register doParallel as the parallel backend as Random Forest is computationally expensive
+# saving 2 cpu for other tasks
 registerDoParallel(cores = detectCores()-2)
 
 rf_fit <- tune_grid(rf_wf, resamples = month_folds, grid = rf_grid, metrics = metric_set(rmse, rsq)) 
@@ -430,21 +434,28 @@ rf_fit <- tune_grid(rf_wf, resamples = month_folds, grid = rf_grid, metrics = me
 # stop the registered parallel backend
 stopImplicitCluster()
 
-show_best(rf_fit, "rmse")
+write_rds(rf_fit, "rf_fit.rds")
+```
+
+```{r}
+rf_fit <- read_rds("rf_fit.rds")
+rf_wf <- read_rds("rf_wf.rds")
+
+show_best(rf_fit, "rsq")
 
 best_rf <- rf_fit %>%
-  select_best("rmse")
+  select_best("rsq")
 best_rf
   
 rf_fit %>%
     collect_metrics() %>%
-    filter(.metric == "rmse") %>%
+    filter(.metric == "rsq") %>%
     ggplot(mapping = aes(x = trees, 
                          y = mean, 
                          color = mtry)) + 
       geom_point() + 
       geom_line() + 
-      labs(x = "trees", y = "CV RMSE") + 
+      labs(x = "trees", y = "R Square") + 
       scale_x_log10(labels = scales::label_number())
 rf_fit
 
@@ -467,25 +478,18 @@ final_rf_fit %>% collect_metrics()
 
 ### Preprocessing
 
-```{r}
-gb_receipe <- 
-  recipe(log_volume ~ ., data = NYSE_other) %>% 
-  step_dummy(all_nominal(), -all_outcomes()) %>% 
-  step_normalize(all_numeric_predictors(), -all_outcomes()) %>%  
-  step_naomit(all_predictors()) %>%
-  prep(data = NYSE_other)
-```
+**Answer: ** Same recipe as before since same dataset is used.
 
 ### Model training
 
-```{r}
+```{r, eval = FALSE}
 library(doParallel)
 library(xgboost)
 
 gb_mod <- 
   boost_tree(
     mode = "regression",
-    trees = 1000, 
+    trees = 500, 
     tree_depth = tune(),
     learn_rate = tune()
   ) %>% 
@@ -495,8 +499,10 @@ gb_mod
 gb_wf <- 
   workflow() %>%
   add_model(gb_mod) %>%
-  add_recipe(gb_receipe %>% step_rm(date) %>% step_indicate_na())
+  add_recipe(recipe %>% step_rm(date) %>% step_indicate_na())
 gb_wf
+
+write_rds(gb_wf, "gb_wf.rds")
 
 folds <- NYSE_other %>% arrange(date) %>%
     sliding_period(date, period = "month", lookback = Inf, assess_stop = 1)
@@ -512,33 +518,55 @@ month_folds <- NYSE_other %>%
 
 gb_grid <-
   grid_regular(
-      tree_depth(range = c(1L, 4L)),
-      learn_rate(range = c(-5, -2), trans = log10_trans()),
-      levels = c(4, 8))
+      tree_depth(range = c(1L, 3L)),
+      learn_rate(range = c(-3, 1), trans = log10_trans()),
+      levels = c(3, 4))
 gb_grid
 
 # Register doParallel as the parallel backend
-# saving 1 cpu for other tasks
+# saving 2 cpu for other tasks
 registerDoParallel(cores = detectCores()-2)
 
-gb_fit <- tune_grid(gb_wf, resamples = month_folds, grid = gb_grid, metrics = metric_set(rmse, rsq)) %>%
-    collect_metrics() %>%
-    print(width = Inf) %>%
-    filter(.metric == "rmse") %>%
-    ggplot(mapping = aes(x = learn_rate, 
-                         y = mean, 
-                         color = factor(tree_depth))) + 
-      geom_point() + 
-      geom_line() + 
-      labs(x = "Learning Rate", y = "CV RMSE") + 
-      scale_x_log10(labels = scales::label_number())
+gb_fit <- tune_grid(gb_wf, resamples = month_folds, grid = gb_grid, metrics = metric_set(rmse, rsq)) 
 
 # stop the registered parallel backend
 stopImplicitCluster()
 
-gb_fit
+write_rds(gb_fit, "gb_fit.rds")
 ```
 
+```{r}
+gb_fit <- read_rds("gb_fit.rds")
+gb_wf <- read_rds("gb_wf.rds")
+
+show_best(gb_fit, "rsq")
+
+best_gb <- gb_fit %>%
+  select_best("rsq")
+best_gb
+  
+gb_fit %>%
+    collect_metrics() %>%
+    filter(.metric == "rsq") %>%
+    ggplot(mapping = aes(x = learn_rate, 
+                         y = mean, 
+                         color = tree_depth)) + 
+      geom_point() + 
+      geom_line() + 
+      labs(x = "trees", y = "R Square") + 
+      scale_x_log10(labels = scales::label_number())
+gb_fit
+
+# Final boosting workflow
+final_gb_wf <- gb_wf %>%
+  finalize_workflow(best_gb)
+final_gb_wf
+
+final_gb_fit <- 
+  final_gb_wf %>%
+  last_fit(correct_split)
+final_gb_fit %>% collect_metrics()
+```
 ### Summary (30pts)
 
 Your score for this question is largely determined by your final test performance.
@@ -546,11 +574,15 @@ Your score for this question is largely determined by your final test performanc
 Summarize the performance of different machine learning forecasters in the following format. 
 
 | Method | CV $R^2$ | Test $R^2$ |
-|:------:|:------:|:------:|:------:|
-| Baseline | | | |
-| AR(5) | | | |
-| Random Forest | | | |
-| Boosting | | | |
+|:------:|:------:|:------:|
+| Baseline | NA | 0.35 |
+| AR(5) | 0.699 | 0.688 |
+| Random Forest | 0.343 | 0.651 |
+| Boosting |  0.387 | 0.682 |
+
+**Answer: ** The best performing model is the AR(5) model with a test R2 of 0.688. The boosting model is the second best with a test R2 of 0.682. The random forest model is the worst performing model with a test R2 of 0.651. The baseline model has a test R2 of 0.35. There are evidently huge improvement between the baseline model and the rest of the more elaborate models.
+
+Noteably, Random Forest and Boosting models have a significantly lower CV R2 than the test R2. This could be a sign of underfitting possbily. Due to my limited computing resources I am not able to fully explore the hyperparameter space for the optimal Random Forest and Boosting models given the time constraint. It could also be due to the outliers or the noise in the training data, it could mean that the AR(5) model is able to capture the noise and the outliers better than the Random Forest and Boosting models.
 
 ### Extension reading   
 - [MOIRAI: Salesforce’s Foundation Model for Time-Series Forecasting](https://towardsdatascience.com/moirai-salesforces-foundation-model-for-time-series-forecasting-4eff6c34093d)
