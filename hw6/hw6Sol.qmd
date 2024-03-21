@@ -160,7 +160,7 @@ for(i in seq(1, L)) {
 }
 
 
-NYSE <-   NYSE %>% na.omit()
+NYSE <- NYSE %>% na.omit()
 ```
 
 
@@ -275,7 +275,7 @@ sliding_period(NYSE_other %>% arrange(date),
 - Rolling forecast origin resampling ([Hyndman and Athanasopoulos 2018](https://otexts.com/fpp3/)) provides a method that emulates how time series data is often partitioned in practice, estimating the model with historical data and evaluating it with the most recent data. 
 
 
-- Tune AR(5) with elastic net (lasso + ridge) regularization using all 3 features on the training data, and evaluate the test performance. 
+- Tune AR(5) with elastic net (enet + ridge) regularization using all 3 features on the training data, and evaluate the test performance. 
 
 ### Preprocessing
 
@@ -292,11 +292,11 @@ en_receipe <-
 
 ```{r}
 ### Model
+set.seed(203)
 enet_mod <- 
   # mixture = 0 (ridge), mixture = 1 (lasso)
   # mixture = (0, 1) elastic net 
-  # As an example, we set mixture = 0.5. It needs to be tuned.
-  linear_reg(penalty = tune(), mixture = 0.5) %>% 
+  linear_reg(penalty = tune(), mixture = 0.99) %>% 
   set_engine("glmnet")
 enet_mod
 
@@ -306,10 +306,9 @@ en_wf <-
   add_recipe(en_receipe %>% step_rm(date) %>% step_indicate_na())
 en_wf
 
+set.seed(203)
 folds <- NYSE_other %>% arrange(date) %>%
     sliding_period(date, period = "month", lookback = Inf, assess_stop = 1)
-  # rolling_origin(initial = 5, assess = 1)
-
 
 month_folds <- NYSE_other %>%
   sliding_period(
@@ -319,27 +318,46 @@ month_folds <- NYSE_other %>%
     skip = 4)
 
 lambda_grid <-
-  grid_regular(penalty(range = c(-8, -7), 
+  grid_regular(penalty(range = c(-15, 15), 
                        trans = log10_trans()), 
-               levels = 3)
+               levels = 30)
 lambda_grid
 
-en_fit <- tune_grid(en_wf, resamples = month_folds, grid = lambda_grid) %>%
-    collect_metrics() %>%
-    filter(.metric == "rmse") %>%
-    ggplot(mapping = aes(x = penalty, y = mean)) + 
-    geom_point() + 
-    geom_line() + 
-    labs(x = "Penalty", y = "CV RMSE") + 
-    scale_x_log10(labels = scales::label_number())
+en_fit <- tune_grid(en_wf, 
+                    resamples = month_folds, 
+                    grid = lambda_grid, 
+                    metrics = metric_set(rmse, rsq))
+
 en_fit
+
+show_best(en_fit, "rmse")
+
+best_enet <- en_fit %>%
+  select_best("rmse")
+best_enet
+
+en_fit %>% collect_metrics() %>%
+  filter(.metric == "rmse") %>%
+  ggplot(mapping = aes(x = penalty, y = mean)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Penalty", y = "CV RMSE") +
+  scale_x_log10(labels = scales::label_number())
+
+# Final enet workflow
+final_enet_wf <- en_wf %>%
+  finalize_workflow(best_enet)
+final_enet_wf
+
+final_enet_fit <- 
+  final_enet_wf %>%
+  last_fit(correct_split)
+final_enet_fit %>% collect_metrics()
 ```
 
-```{r}
+- Hint: [Workflow: enet](https://ucla-biostat-212a.github.io/2024winter/slides/06-modelselection/workflow_enet.html) is a good starting point.
 
-```
-
-- Hint: [Workflow: Lasso](https://ucla-biostat-212a.github.io/2024winter/slides/06-modelselection/workflow_lasso.html) is a good starting point.
+**Answer: ** I changed the mixture parameter to 0.99 because in the process of tunning from 0 to 1 by an increment of 0.1 each time, I have discovered that the best performing mixture is closer to 1 (lasso). I also increased the range of the penalty term to (-15, 15) and used 30 levels to capture the minimum for rmse. The elastic net model is decent at predicting the log volume with the test rmse being 0.138 since the baseline model has a test rmse of 0.15 with an 0.02 improvement.
 
 ### Random forest forecaster (30pts)
 
@@ -364,6 +382,7 @@ rf_receipe <-
 library(doParallel)
 library(ranger)
 
+set.seed(203)
 ### Model
 rf_mod <- 
   rand_forest(
@@ -380,8 +399,9 @@ rf_wf <-
   workflow() %>%
   add_model(rf_mod) %>%
   add_recipe(rf_receipe %>% step_rm(date) %>% step_indicate_na())
-en_wf
+rf_wf
 
+set.seed(203)
 folds <- NYSE_other %>% arrange(date) %>%
     sliding_period(date, period = "month", lookback = Inf, assess_stop = 1)
   # rolling_origin(initial = 5, assess = 1)
@@ -403,9 +423,20 @@ rf_grid
 
 # Register doParallel as the parallel backend
 # saving 1 cpu for other tasks
-registerDoParallel(cores = detectCores()-1)
+registerDoParallel(cores = detectCores()-2)
 
-rf_fit <- tune_grid(rf_wf, resamples = month_folds, grid = rf_grid) %>%
+rf_fit <- tune_grid(rf_wf, resamples = month_folds, grid = rf_grid, metrics = metric_set(rmse, rsq)) 
+
+# stop the registered parallel backend
+stopImplicitCluster()
+
+show_best(rf_fit, "rmse")
+
+best_rf <- rf_fit %>%
+  select_best("rmse")
+best_rf
+  
+rf_fit %>%
     collect_metrics() %>%
     filter(.metric == "rmse") %>%
     ggplot(mapping = aes(x = trees, 
@@ -413,13 +444,19 @@ rf_fit <- tune_grid(rf_wf, resamples = month_folds, grid = rf_grid) %>%
                          color = mtry)) + 
       geom_point() + 
       geom_line() + 
-      labs(x = "Penalty", y = "CV RMSE") + 
+      labs(x = "trees", y = "CV RMSE") + 
       scale_x_log10(labels = scales::label_number())
-
-# stop the registered parallel backend
-stopImplicitCluster()
-
 rf_fit
+
+# Final enet workflow
+final_rf_wf <- rf_wf %>%
+  finalize_workflow(best_rf)
+final_rf_wf
+
+final_rf_fit <- 
+  final_rf_wf %>%
+  last_fit(correct_split)
+final_rf_fit %>% collect_metrics()
 ```
 
 ### Boosting forecaster (30pts)
@@ -428,6 +465,79 @@ rf_fit
 
 - Hint: [Workflow: Boosting tree for Prediction](https://ucla-biostat-212a.github.io/2024winter/slides/08-tree/workflow_boosting_reg.html) is a good starting point.
 
+### Preprocessing
+
+```{r}
+gb_receipe <- 
+  recipe(log_volume ~ ., data = NYSE_other) %>% 
+  step_dummy(all_nominal(), -all_outcomes()) %>% 
+  step_normalize(all_numeric_predictors(), -all_outcomes()) %>%  
+  step_naomit(all_predictors()) %>%
+  prep(data = NYSE_other)
+```
+
+### Model training
+
+```{r}
+library(doParallel)
+library(xgboost)
+
+gb_mod <- 
+  boost_tree(
+    mode = "regression",
+    trees = 1000, 
+    tree_depth = tune(),
+    learn_rate = tune()
+  ) %>% 
+  set_engine("xgboost")
+gb_mod
+
+gb_wf <- 
+  workflow() %>%
+  add_model(gb_mod) %>%
+  add_recipe(gb_receipe %>% step_rm(date) %>% step_indicate_na())
+gb_wf
+
+folds <- NYSE_other %>% arrange(date) %>%
+    sliding_period(date, period = "month", lookback = Inf, assess_stop = 1)
+  # rolling_origin(initial = 5, assess = 1)
+
+
+month_folds <- NYSE_other %>%
+  sliding_period(
+    date,
+    "month",
+    lookback = Inf,
+    skip = 4)
+
+gb_grid <-
+  grid_regular(
+      tree_depth(range = c(1L, 4L)),
+      learn_rate(range = c(-5, -2), trans = log10_trans()),
+      levels = c(4, 8))
+gb_grid
+
+# Register doParallel as the parallel backend
+# saving 1 cpu for other tasks
+registerDoParallel(cores = detectCores()-2)
+
+gb_fit <- tune_grid(gb_wf, resamples = month_folds, grid = gb_grid, metrics = metric_set(rmse, rsq)) %>%
+    collect_metrics() %>%
+    print(width = Inf) %>%
+    filter(.metric == "rmse") %>%
+    ggplot(mapping = aes(x = learn_rate, 
+                         y = mean, 
+                         color = factor(tree_depth))) + 
+      geom_point() + 
+      geom_line() + 
+      labs(x = "Learning Rate", y = "CV RMSE") + 
+      scale_x_log10(labels = scales::label_number())
+
+# stop the registered parallel backend
+stopImplicitCluster()
+
+gb_fit
+```
 
 ### Summary (30pts)
 
