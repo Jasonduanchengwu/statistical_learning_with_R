@@ -23,6 +23,7 @@ knitr:
 ---
 
 Load R libraries.
+
 ```{r}
 rm(list = ls())
 library(tidyverse)
@@ -123,7 +124,6 @@ seq(1, 30) %>%
   geom_segment(mapping = aes(xend = lag, yend = 0)) + 
   ggtitle("AutoCorrelation between `log volume` and lagged `log volatility`")
 ```
-
 
 
 ### Project goal
@@ -276,7 +276,7 @@ sliding_period(NYSE_other %>% arrange(date),
 
 - Tune AR(5) with elastic net (enet + ridge) regularization using all 3 features on the training data, and evaluate the test performance. 
 
-### Preprocessing
+#### Preprocessing
 
 ```{r}
 recipe <- 
@@ -293,7 +293,7 @@ recipe <-
   # prep(data = NYSE_other)
 ```
 
-### Model training
+#### Model training
 
 ```{r, eval=FALSE}
 library(doParallel)
@@ -390,11 +390,11 @@ final_enet_fit %>% collect_metrics()
 
 - Hint: [Workflow: Random Forest for Prediction](https://ucla-biostat-212a.github.io/2024winter/slides/08-tree/workflow_rf_reg.html) is a good starting point.
 
-### Preprocessing
+#### Preprocessing
 
 **Answer: ** Same recipe as before since same dataset is used.
 
-### Model training
+#### Model training
 
 ```{r, eval = FALSE}
 library(doParallel)
@@ -487,6 +487,7 @@ final_rf_fit <-
   last_fit(correct_split)
 final_rf_fit %>% collect_metrics()
 ```
+
 **Answer: ** Due to limited computing resources, I tuned with small ranges of mtry and trees to locate the optimal tunning
 parameters to capture the maximum R Square. The random forest is decent at predicting the log volume with the test rsq being 0.3830 since the baseline model has a test rsq of 0.35, however it is performing worse than elastic net model. An rsq of 0.3830 means that approximately 38.30% of the variance in the outcome is predictable from the predictors in the model.
 
@@ -496,11 +497,11 @@ parameters to capture the maximum R Square. The random forest is decent at predi
 
 - Hint: [Workflow: Boosting tree for Prediction](https://ucla-biostat-212a.github.io/2024winter/slides/08-tree/workflow_boosting_reg.html) is a good starting point.
 
-### Preprocessing
+#### Preprocessing
 
 **Answer: ** Same recipe as before since same dataset is used.
 
-### Model training
+#### Model training
 
 ```{r, eval = FALSE}
 library(doParallel)
@@ -626,12 +627,11 @@ library(tidyverse)
 # Read in the gene expression data from url
 url = "https://raw.githubusercontent.com/ucla-biostat-212a/2024winter/master/slides/data/Ch12Ex13.csv"
 gene_exp <- read.csv(url, header = FALSE)
-gene_exp
-
 # gene_exp_dist = as.dist(1-cor(gene_exp))
 ```
 
 ### 12.6.13 (b) (30 pts)
+
 (b) Apply hierarchical clustering to the samples using correlation-
 based distance, and plot the dendrogram. Do the genes separate
 the samples into the two groups? Do your results depend on the
@@ -782,6 +782,7 @@ tidied_pca %>%
     y = NULL, fill = "Positive?"
   )
 ```
+**Answer: ** To comment on the most important component, the principle component 1 which captures the maximum variance in the data. In this context all the variables namely in the range of the diseased group have similar and substantial contributions to PC1, indicated by the length of the bars. They are all colored red, meaning their contribution is marked as "FALSE", this could mean their contribution to PC1 is negative which matches with the information that we have known from the data documentation.
 
 ```{r}
 pca_results <- juice(pca_prep)
@@ -797,6 +798,8 @@ ggplot(pca_results, aes(PC1, PC2, color = Cluster)) +
   geom_point(alpha = 0.7, size = 2) +
   labs(color = "Cluster")
 ```
+
+**Answer: ** It is apparent that the two groups are well separated in the PCA plot. There is clear seggregation between the two groups.
 
 ```{r}
 library(embed)
@@ -820,7 +823,7 @@ ggplot(umap_results, aes(UMAP1, UMAP2, color = Cluster)) +
   labs(color = "Cluster")
 ```
 
-## TODO: comment on PCA and UMAP results
+**Answer: ** With UMAP, the local neighborhood is preserved and it will not be strictly linear in nature. It is clear that in this case the clusters seems to form oval patterns while still showing the separation of the two distinct groups. There is clear seggregation between the two groups With cluster 2 having a having much more spread.
 
 ### 12.6.13 (c) (30 pts)
 (c) Your collaborator wants to know which genes differ the most
@@ -889,7 +892,6 @@ library(heatmaply) ## for constructing interactive heatmap
 ```
 
 ```{r}
-
 #create data frame for annotations
 dfh <- data.frame(sample=as.character(colnames(Ch12Ex13)), status = "disease") %>%
                 column_to_rownames("sample")
@@ -897,13 +899,13 @@ dfh$status[seq(21, 40)] <-  "healthy"
 dfh
 
 
-pheatmap(Ch12Ex13[sig$gene, ], cluster_rows = FALSE, cluster_cols = T, scale="row", annotation_col = dfh,
-         annotation_colors=list(status = c(disease = "orange", healthy = "black")),
-         color=colorRampPalette(c("navy", "white", "red"))(50))
+pheatmap(Ch12Ex13[sig$gene, ], 
+         cluster_rows = FALSE, 
+         cluster_cols = T, 
+         scale = "row", 
+         annotation_col = dfh,
+         annotation_colors = list(status = c(disease = "orange", healthy = "black")),
+         color = colorRampPalette(c("navy", "white", "red"))(50))
 ```
 
-**Answer: ** To identify the genes that differ the most across the two groups, I performed a linear regression analysis on each gene to determine the p-value of the association between the gene and the group. The heatmap shows that the expression of these genes are different across the two groups.
-
-## TODO: elaborate more
-
-
+**Answer: ** To identify the genes that differ the most across the two groups, a linear regression analysis on each gene can be used to determine the p-value of the association between the gene and the group. The heatmap shows that the expression of these genes are different across the two groups. We can see that there are clearly more positive values in the healthy group and more negative values in the disease group. This suggests that the genes are differentially expressed across the two groups. And the IDs confirmed that the genes are differentially expressed across the two groups as we know that ID1-20 is disease and ID21-40 is healthy which is reflected in the heatmap as well.
