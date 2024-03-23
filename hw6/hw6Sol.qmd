@@ -355,10 +355,11 @@ write_rds(en_fit, "en_fit.rds")
 en_fit <- read_rds("en_fit.rds")
 en_wf <- read_rds("en_wf.rds")
 
-show_best(en_fit, "rsq")
+en_fit %>% 
+  show_best(metric = "rsq")
 
 best_enet <- en_fit %>%
-  select_best("rsq")
+  select_best(metric = "rsq")
 best_enet
 
 en_fit %>% collect_metrics() %>%
@@ -459,10 +460,11 @@ write_rds(rf_fit, "rf_fit.rds")
 rf_fit <- read_rds("rf_fit.rds")
 rf_wf <- read_rds("rf_wf.rds")
 
-show_best(rf_fit, "rsq")
+rf_fit %>% 
+  show_best(metric = "rsq")
 
 best_rf <- rf_fit %>%
-  select_best("rsq")
+  select_best(metric = "rsq")
 best_rf
   
 rf_fit %>%
@@ -561,10 +563,11 @@ write_rds(gb_fit, "gb_fit.rds")
 gb_fit <- read_rds("gb_fit.rds")
 gb_wf <- read_rds("gb_wf.rds")
 
-show_best(gb_fit, "rsq")
+gb_fit %>% 
+  show_best(metric = "rsq")
 
 best_gb <- gb_fit %>%
-  select_best("rsq")
+  select_best(metric = "rsq")
 best_gb
   
 gb_fit %>%
@@ -895,7 +898,7 @@ library(heatmaply) ## for constructing interactive heatmap
 #create data frame for annotations
 dfh <- data.frame(sample=as.character(colnames(Ch12Ex13)), status = "disease") %>%
                 column_to_rownames("sample")
-dfh$status[seq(21, 40)] <-  "healthy"
+dfh$status[seq(1, 20)] <-  "healthy"
 dfh
 
 
